@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -7,12 +8,10 @@
 
 namespace YAVL {
 
-std::string to_lower_copy(std::string s) {
-  std::string rsl(s.size(), ' ');
-  for (std::string::size_type i = 0; i < s.size(); ++i) {
-    rsl[i] = tolower(s[i]);
-  }
-  return rsl;
+std::string to_lower_copy(const std::string &s) {
+  std::string result = s;
+  std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c){ return std::tolower(c); });
+  return result;
 }
 
 DataNodeDefinition DataBinderGen::make_map_type(const YAML::Node &mapNode, std::string name) {
@@ -64,9 +63,8 @@ DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, std::s
   } else if (type == "enum") {
     elem.enum_def.name = to_lower_copy(elem.name);
     elem.enum_def.name[0] = toupper(elem.enum_def.name[0]);
-    for (const auto &it : type_specifics) {
-      elem.enum_def.enum_values.push_back(it.as<std::string>());
-    }
+    std::transform(type_specifics.begin(), type_specifics.end(), std::back_inserter(elem.enum_def.enum_values),
+        [](const auto &it) {return it.template as<std::string>();});
     elem.kind_of_node = ENUM;
     elem.type = elem.enum_def.name;
   } else {

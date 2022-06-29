@@ -7,7 +7,7 @@
 #include <yaml-cpp/yaml.h>
 
 namespace YAVL {
-std::string to_lower_copy(std::string s);
+std::string to_lower_copy(const std::string &s);
 
 // intentionally named 'kind' to avoid confusion with 'type' :)
 enum KindOfDataNodeDefinition {

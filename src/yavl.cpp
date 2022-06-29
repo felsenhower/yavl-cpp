@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <assert.h>
 #include <stdio.h>
 #include <unordered_map>
@@ -101,13 +102,7 @@ bool Validator::validate_leaf(const YAML::Node &gr, const YAML::Node &doc) {
   } else if (type == "bool") {
     attempt_to_convert<bool>(doc, ok);
   } else if (type == "enum") {
-    ok = false;
-    for (const auto &it : type_specifics) {
-      if (it == doc) {
-        ok = true;
-        break;
-      }
-    }
+    ok = std::any_of(type_specifics.begin(), type_specifics.end(), [doc](const auto &it) { return it == doc; });
     if (!ok) {
       std::string reason = "enum std::string '" + doc.as<std::string>() + "' is not allowed.";
       gen_error(Exception(reason, gr_path, doc_path));
