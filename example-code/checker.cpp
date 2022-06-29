@@ -2,7 +2,7 @@
 #include <iostream>
 #include <yaml-cpp/yaml.h>
 
-#include "yavl.h"
+#include "yavl-cpp/yavl.h"
 
 int main(int argc, char **argv) {
 

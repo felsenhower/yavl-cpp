@@ -13,7 +13,7 @@ TC_SOURCES := example-code/tc.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
 YATC_CLIENT_SOURCES := example-code/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES) $(BUILD_DIR)/top.cpp
 
 CXX = g++
-INCLUDE_DIRS := $(YAML_CPP_PATH)/include src $(BUILD_DIR)
+INCLUDE_DIRS := $(YAML_CPP_PATH)/include include $(BUILD_DIR)
 CXXFLAGS = -O3 -std=c++20 -Wall -Werror -Wpedantic -Wno-restrict -Wno-dangling-pointer
 CXXFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
 

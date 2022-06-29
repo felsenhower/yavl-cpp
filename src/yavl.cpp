@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <yaml-cpp/yaml.h>
 
-#include "yavl.h"
+#include "yavl-cpp/yavl.h"
 
 namespace YAVL {
 

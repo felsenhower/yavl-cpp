@@ -2,7 +2,7 @@
 #include <cassert>
 #include <yaml-cpp/yaml.h>
 
-#include "yatc.h"
+#include "yavl-cpp/yatc.h"
 
 namespace YAVL {
 
@@ -160,7 +160,7 @@ bool DataBinderGen::emit_header(std::ostream &os) {
   os << "#include <vector>" << std::endl;
   os << "#include <string>" << std::endl;
   os << "#include <yaml-cpp/yaml.h>" << std::endl;
-  os << "#include \"yatc.h\"" << std::endl;
+  os << "#include \"yavl-cpp/yatc.h\"" << std::endl;
   emit_header(root_data_defn, os);
   return true;
 }
