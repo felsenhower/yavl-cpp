@@ -108,8 +108,6 @@ void DataBinderGen::emit_enum_def(const DataNodeDefinition &elem, std::ostream &
     os << *i;
   }
   os << " };" << std::endl;
-  os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj);" << std::endl;
-  write_put_operator_prolog(os, elem.type, true /* prototype */);
 }
 
 bool DataBinderGen::emit_declarations(const DataNodeDefinition &elem, std::ostream &os) {
@@ -149,8 +147,6 @@ bool DataBinderGen::emit_declarations(const DataNodeDefinition &elem, std::ostre
         os << "  " << e.type << " " << e.name << ";" << std::endl;
       }
       os << "};" << std::endl;
-      os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj);" << std::endl;
-      write_put_operator_prolog(os, elem.type, true /* prototype */);
       break;
   }
   return true;
