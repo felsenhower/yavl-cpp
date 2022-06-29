@@ -8,9 +8,9 @@ BUILD_DIR := build
 
 YAVL_SOURCES := src/yavl.cpp
 YATC_SOURCES := src/yatc.cpp
-CHECKER_SOURCES := example-code/checker.cpp $(YAVL_SOURCES) $(YAML_CPP_SOURCES)
-TC_SOURCES := example-code/tc.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
-YATC_CLIENT_SOURCES := example-code/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES) $(BUILD_DIR)/top.cpp
+CHECKER_SOURCES := examples/apps/checker.cpp $(YAVL_SOURCES) $(YAML_CPP_SOURCES)
+TC_SOURCES := examples/apps/tc.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
+YATC_CLIENT_SOURCES := examples/apps/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES) $(BUILD_DIR)/top.cpp
 
 CXX = g++
 INCLUDE_DIRS := $(YAML_CPP_PATH)/include include $(BUILD_DIR)
@@ -23,13 +23,13 @@ all: test
 
 test: checker tc $(YAML_CPP_SOURCES)
 	@echo -e '\n>> Testing checker...\n'
-	! $(BUILD_DIR)/checker example-specs/gr3.yaml example-specs/y0.gr3.yaml
+	! $(BUILD_DIR)/checker examples/specs/gr3.yaml examples/specs/y0.gr3.yaml
 	@echo -e '\n>> Testing tc...\n'
 	$(MAKE) $(BUILD_DIR)/top.cpp
 	$(MAKE) $(BUILD_DIR)/top.h
 	$(MAKE) $(BUILD_DIR)/yatc-client
 	@echo -e '\n>> Testing yatc-client...\n'
-	$(BUILD_DIR)/yatc-client example-specs/y0.gr4.yaml
+	$(BUILD_DIR)/yatc-client examples/specs/y0.gr4.yaml
 	@echo -e '\n>> All tests finished successfully.\n'
 
 checker: $(BUILD_DIR)/checker
@@ -50,7 +50,7 @@ $(BUILD_DIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $^
 
 $(BUILD_DIR)/top.cpp $(BUILD_DIR)/top.h: $(BUILD_DIR)/tc
-	cd $(BUILD_DIR) ; ./tc $(shell realpath --relative-to=$(BUILD_DIR) .)/example-specs/gr4.yaml top
+	cd $(BUILD_DIR) ; ./tc $(shell realpath --relative-to=$(BUILD_DIR) .)/examples/specs/gr4.yaml top
 
 
 $(YAML_CPP_SUBMODULE_PATH)/%::
