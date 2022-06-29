@@ -10,7 +10,7 @@ YAVL_SOURCES := src/yavl.cpp
 YATC_SOURCES := src/yatc.cpp
 CHECKER_SOURCES := examples/apps/checker.cpp $(YAVL_SOURCES) $(YAML_CPP_SOURCES)
 TC_SOURCES := examples/apps/tc.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
-YATC_CLIENT_SOURCES := examples/apps/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES) $(BUILD_DIR)/top.cpp
+YATC_CLIENT_SOURCES := examples/apps/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
 
 CXX = g++
 INCLUDE_DIRS := $(YAML_CPP_PATH)/include include $(BUILD_DIR)
@@ -25,7 +25,6 @@ test: checker tc $(YAML_CPP_SOURCES)
 	@echo -e '\n>> Testing checker...\n'
 	! $(BUILD_DIR)/checker examples/specs/gr3.yaml examples/specs/y0.gr3.yaml
 	@echo -e '\n>> Testing tc...\n'
-	$(MAKE) $(BUILD_DIR)/top.cpp
 	$(MAKE) $(BUILD_DIR)/top.h
 	$(MAKE) $(BUILD_DIR)/yatc-client
 	@echo -e '\n>> Testing yatc-client...\n'
@@ -49,7 +48,7 @@ $(BUILD_DIR)/%.o: %.cpp
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c -o $@ $^
 
-$(BUILD_DIR)/top.cpp $(BUILD_DIR)/top.h: $(BUILD_DIR)/tc
+$(BUILD_DIR)/top.h: $(BUILD_DIR)/tc
 	cd $(BUILD_DIR) ; ./tc $(shell realpath --relative-to=$(BUILD_DIR) .)/examples/specs/gr4.yaml top
 
 

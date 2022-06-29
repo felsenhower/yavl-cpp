@@ -27,11 +27,7 @@ int main(int argc, char **argv) {
   std::ofstream hf;
   hf.open((topname + ".h").c_str());
   yatc.emit_header(hf);
+  yatc.emit_reader(hf);
+  yatc.emit_dumper(hf);
   hf.close();
-
-  std::ofstream rf;
-  rf.open((topname + ".cpp").c_str());
-  yatc.emit_reader(rf);
-  yatc.emit_dumper(rf);
-  rf.close();
 }

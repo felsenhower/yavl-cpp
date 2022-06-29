@@ -108,7 +108,7 @@ void DataBinderGen::emit_enum_def(const DataNodeDefinition &elem, std::ostream &
     os << *i;
   }
   os << " };" << std::endl;
-  os << "void operator >>(const YAML::Node& node, " << elem.type << " &obj);" << std::endl;
+  os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj);" << std::endl;
   write_put_operator_prolog(os, elem.type, true /* prototype */);
 }
 
@@ -149,7 +149,7 @@ bool DataBinderGen::emit_header(const DataNodeDefinition &elem, std::ostream &os
         os << "  " << e.type << " " << e.name << ";" << std::endl;
       }
       os << "};" << std::endl;
-      os << "void operator >>(const YAML::Node& node, " << elem.type << " &obj);" << std::endl;
+      os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj);" << std::endl;
       write_put_operator_prolog(os, elem.type, true /* prototype */);
       break;
   }
@@ -166,7 +166,7 @@ bool DataBinderGen::emit_header(std::ostream &os) {
 }
 
 void DataBinderGen::emit_enum_reader(const DataNodeDefinition &elem, std::ostream &os) {
-  os << "void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
+  os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
   os << "  std::string tmp; node >> tmp;" << std::endl;
   std::vector<std::string>::const_iterator i = elem.enum_def.enum_values.begin();
   for (; i != elem.enum_def.enum_values.end(); ++i) {
@@ -179,7 +179,7 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, std::ostream &os
   switch (elem.kind_of_node) {
     case ENUM:
       emit_enum_reader(elem, os);
-      os << "void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
+      os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
       os << "  node[\"" << elem.name << "\"] >> obj." << elem.name << ";" << std::endl;
       os << "}" << std::endl;
       break;
@@ -191,7 +191,7 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, std::ostream &os
       break;
 
     case BUILTIN:
-      os << "void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
+      os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
       os << "  node[\"" << elem.name << "\"] >> obj." << elem.name << ";" << std::endl;
       os << "}" << std::endl;
       break;
@@ -211,7 +211,7 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, std::ostream &os
         }
       }
       // pass two: emit myself
-      os << "void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
+      os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
       i = elem.elems.begin();
       for (; i != elem.elems.end(); ++i) {
         const DataNodeDefinition &e = **i;
@@ -224,7 +224,6 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, std::ostream &os
 }
 
 bool DataBinderGen::emit_reader(std::ostream &os) {
-  os << "#include \"" << to_lower_copy(topname) << ".h\"" << std::endl;
   emit_reader(root_data_defn, os);
   return true;
 }
@@ -239,7 +238,7 @@ void DataBinderGen::emit_enum_dumper(const DataNodeDefinition &elem, std::ostrea
 }
 
 bool DataBinderGen::write_put_operator_prolog(std::ostream &os, std::string type, bool prototype) {
-  os << "YAML::Emitter& operator <<(YAML::Emitter& out, const " << type << " &obj)";
+  os << "inline YAML::Emitter& operator <<(YAML::Emitter& out, const " << type << " &obj)";
   if (!prototype) {
     os << " {";
   } else {
