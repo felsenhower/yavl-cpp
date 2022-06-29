@@ -7,7 +7,7 @@
 
 namespace YAVL {
 
-typedef std::vector<std::string> Path;
+using Path = std::vector<std::string>;
 
 // really sucks that I have to do this sort of crap since I can't
 // pass a type as an argument to a function.
@@ -27,7 +27,7 @@ class Exception {
           doc_path(_doc_path){};
 };
 
-typedef std::vector<Exception> Errors;
+using Errors = std::vector<Exception>;
 
 class Validator {
     const YAML::Node &gr;
