@@ -112,7 +112,7 @@ void DataBinderGen::emit_enum_def(const DataNodeDefinition &elem, std::ostream &
   write_put_operator_prolog(os, elem.type, true /* prototype */);
 }
 
-bool DataBinderGen::emit_header(const DataNodeDefinition &elem, std::ostream &os) {
+bool DataBinderGen::emit_declarations(const DataNodeDefinition &elem, std::ostream &os) {
   switch (elem.kind_of_node) {
     case ENUM:
       emit_enum_def(elem, os);
@@ -120,7 +120,7 @@ bool DataBinderGen::emit_header(const DataNodeDefinition &elem, std::ostream &os
 
     case VECTOR:
       if (elem.listelem_def->kind_of_node != BUILTIN) {
-        emit_header(*elem.listelem_def, os);
+        emit_declarations(*elem.listelem_def, os);
       }
       break;
 
@@ -134,10 +134,10 @@ bool DataBinderGen::emit_header(const DataNodeDefinition &elem, std::ostream &os
         if (((*i)->kind_of_node == ENUM)) {
           emit_enum_def(**i, os);
         } else if ((*i)->kind_of_node == STRUCT) {
-          emit_header(**i, os);
+          emit_declarations(**i, os);
         } else if ((*i)->kind_of_node == VECTOR) {
           if ((*i)->listelem_def->kind_of_node != BUILTIN) {
-            emit_header(*((*i)->listelem_def), os);
+            emit_declarations(*((*i)->listelem_def), os);
           }
         }
       }
@@ -156,12 +156,12 @@ bool DataBinderGen::emit_header(const DataNodeDefinition &elem, std::ostream &os
   return true;
 }
 
-bool DataBinderGen::emit_header(std::ostream &os) {
+bool DataBinderGen::emit_declarations(std::ostream &os) {
   os << "#include <vector>" << std::endl;
   os << "#include <string>" << std::endl;
   os << "#include <yaml-cpp/yaml.h>" << std::endl;
   os << "#include \"yavl-cpp/yatc.h\"" << std::endl;
-  emit_header(root_data_defn, os);
+  emit_declarations(root_data_defn, os);
   return true;
 }
 
@@ -353,6 +353,13 @@ bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, std::ostream &os
 bool DataBinderGen::emit_dumper(std::ostream &os) {
   emit_dumper(root_data_defn, os);
   return true;
+}
+
+void DataBinderGen::emit_header(std::ostream &os) {
+  emit_declarations(os);
+  emit_reader(os);
+  emit_dumper(os);
+
 }
 
 } // namespace YAVL

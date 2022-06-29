@@ -27,6 +27,4 @@ int main(int argc, char **argv) {
   const std::string outfile = topname + ".h";
   std::ofstream hf(outfile);
   yatc.emit_header(hf);
-  yatc.emit_reader(hf);
-  yatc.emit_dumper(hf);
 }

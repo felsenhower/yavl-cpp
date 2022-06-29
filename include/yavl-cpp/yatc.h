@@ -43,7 +43,7 @@ class DataBinderGen {
     DataNodeDefinition make_scalar_type(const YAML::Node &gr, std::string name);
 
     void emit_enum_def(const DataNodeDefinition &elem, std::ostream &os);
-    bool emit_header(const DataNodeDefinition &elem, std::ostream &os);
+    bool emit_declarations(const DataNodeDefinition &elem, std::ostream &os);
     void emit_enum_reader(const DataNodeDefinition &elem, std::ostream &os);
     bool emit_reader(const DataNodeDefinition &elem, std::ostream &os);
 
@@ -57,7 +57,8 @@ class DataBinderGen {
     DataBinderGen(const YAML::Node &_gr, std::string _topname) : gr(_gr), topname(_topname) {
       root_data_defn = make_types(gr, topname);
     };
-    bool emit_header(std::ostream &os);
+    void emit_header(std::ostream &os);
+    bool emit_declarations(std::ostream &os);
     bool emit_reader(std::ostream &os);
     virtual bool emit_dumper(std::ostream &os);
 };
