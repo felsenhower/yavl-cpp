@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     gr = YAML::LoadFile(grammar_filename);
   } catch (const YAML::Exception &e) {
     std::cerr << "Error reading grammar: " << e.what() << "\n";
-    return 1;
+    return EXIT_FAILURE;
   }
 
   const std::string doc_filename = argv[2];
@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     doc = YAML::LoadFile(doc_filename);
   } catch (const YAML::Exception &e) {
     std::cerr << "Error reading document: " << e.what() << "\n";
-    return 2;
+    return EXIT_FAILURE;
   }
 
   YAVL::Validator yavl(gr, doc);
@@ -29,5 +29,5 @@ int main(int argc, char **argv) {
     std::cout << "ERRORS FOUND: " << std::endl << std::endl;
     std::cout << yavl.get_errors();
   }
-  return !ok;
+  return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

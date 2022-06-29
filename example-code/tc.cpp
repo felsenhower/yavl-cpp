@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     gr = YAML::LoadFile(grammar_filename);
   } catch (const YAML::Exception &e) {
     std::cerr << "Error reading grammar: " << e.what() << "\n";
-    return 1;
+    return EXIT_FAILURE;
   }
 
   std::string topname(argv[2]);

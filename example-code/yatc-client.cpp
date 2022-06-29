@@ -20,5 +20,5 @@ int main(int argc, char **argv) {
     // dump it to disk
     std::cout << out.c_str() << std::endl;
   } catch (const YAML::Exception &e) { std::cerr << e.what() << "\n"; }
-  return 0;
+  return EXIT_SUCCESS;
 }
