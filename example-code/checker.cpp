@@ -4,10 +4,8 @@
 
 #include "yavl.h"
 
-using namespace std;
-
 int main(int argc, char **argv) {
-  const string grammar_filename = argv[1];
+  const std::string grammar_filename = argv[1];
   YAML::Node gr;
   try {
     gr = YAML::LoadFile(grammar_filename);
@@ -16,7 +14,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  const string doc_filename = argv[2];
+  const std::string doc_filename = argv[2];
   YAML::Node doc;
   try {
     doc = YAML::LoadFile(doc_filename);
@@ -28,8 +26,8 @@ int main(int argc, char **argv) {
   YAVL::Validator yavl(gr, doc);
   bool ok = yavl.validate();
   if (!ok) {
-    cout << "ERRORS FOUND: " << endl << endl;
-    cout << yavl.get_errors();
+    std::cout << "ERRORS FOUND: " << std::endl << std::endl;
+    std::cout << yavl.get_errors();
   }
   return !ok;
 }

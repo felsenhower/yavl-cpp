@@ -3,11 +3,9 @@
 
 #include "top.h"
 
-using namespace std;
-
 int main(int argc, char **argv) {
   Top top;
-  const string doc_filename = argv[1];
+  const std::string doc_filename = argv[1];
   try {
     YAML::Node doc = YAML::LoadFile(doc_filename);
 
@@ -20,7 +18,7 @@ int main(int argc, char **argv) {
     out << top;
 
     // dump it to disk
-    cout << out.c_str() << endl;
+    std::cout << out.c_str() << std::endl;
   } catch (const YAML::Exception &e) { std::cerr << e.what() << "\n"; }
   return 0;
 }

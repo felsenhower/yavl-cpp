@@ -5,11 +5,9 @@
 
 #include "yatc.h"
 
-using namespace std;
-
 int main(int argc, char **argv) {
   YAML::Node gr;
-  const string grammar_filename = argv[1];
+  const std::string grammar_filename = argv[1];
   try {
     gr = YAML::LoadFile(grammar_filename);
   } catch (const YAML::Exception &e) {
@@ -17,15 +15,15 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  string topname(argv[2]);
+  std::string topname(argv[2]);
   YAVL::DataBinderGen yatc(gr, topname);
 
-  ofstream hf;
+  std::ofstream hf;
   hf.open((topname + ".h").c_str());
   yatc.emit_header(hf);
   hf.close();
 
-  ofstream rf;
+  std::ofstream rf;
   rf.open((topname + ".cpp").c_str());
   yatc.emit_reader(rf);
   yatc.emit_dumper(rf);
