@@ -24,10 +24,9 @@ int main(int argc, char **argv) {
   std::string topname(argv[2]);
   YAVL::DataBinderGen yatc(gr, topname);
 
-  std::ofstream hf;
-  hf.open((topname + ".h").c_str());
+  const std::string outfile = topname + ".h";
+  std::ofstream hf(outfile);
   yatc.emit_header(hf);
   yatc.emit_reader(hf);
   yatc.emit_dumper(hf);
-  hf.close();
 }
