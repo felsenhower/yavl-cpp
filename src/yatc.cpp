@@ -44,7 +44,6 @@ DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, std::s
 
   elem.name = name;
 
-  bool ok = true;
   if (type == "string") {
     elem.type = "std::string";
     elem.kind_of_node = BUILTIN;
@@ -67,8 +66,6 @@ DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, std::s
         [](const auto &it) {return it.template as<std::string>();});
     elem.kind_of_node = ENUM;
     elem.type = elem.enum_def.name;
-  } else {
-    ok = false;
   }
   return elem;
 }
