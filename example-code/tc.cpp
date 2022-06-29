@@ -1,20 +1,17 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "yaml.h"
+#include <yaml-cpp/yaml.h>
 #include "yatc.h"
 
 using namespace std;
 
 int main(int argc, char **argv)
 {
-  std::ifstream grin; // grammar file
-  grin.open(argv[1]);
-  
   YAML::Node gr;
+  const string grammar_filename = argv[1];
   try {
-    YAML::Parser parser(grin);
-    parser.GetNextDocument(gr);
+    gr = YAML::LoadFile(grammar_filename);
   } catch(const YAML::Exception& e) {
     std::cerr << "Error reading grammar: " << e.what() << "\n";
     return 1;

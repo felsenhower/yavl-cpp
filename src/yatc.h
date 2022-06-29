@@ -1,7 +1,6 @@
-#ifndef _YATC_H_
-#define _YATC_H_
+#pragma once
 
-#include "yaml.h"
+#include <yaml-cpp/yaml.h>
 #include <vector>
 #include <string>
 #include <ostream>
@@ -59,7 +58,18 @@ namespace YAVL
     bool emit_reader(std::ostream& os);
     virtual bool emit_dumper(std::ostream& os);
   };
-
 }
 
-#endif
+template<typename T>
+inline void operator >>(const YAML::Node& node, T &obj) {
+  obj = node.as<T>(); 
+}
+
+template <typename T>
+inline void operator >>(const YAML::Node& node, std::vector<T> &obj) {
+  for (const auto &it : node) {
+    T tmp;
+    (YAML::Node)it >> tmp;
+    obj.push_back(tmp);
+  }
+}

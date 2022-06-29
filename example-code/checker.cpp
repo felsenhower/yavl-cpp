@@ -1,31 +1,25 @@
 #include <fstream>
 #include <iostream>
-#include "yaml.h"
+#include <yaml-cpp/yaml.h>
 #include "yavl.h"
 
 using namespace std;
 
 int main(int argc, char **argv)
 {
-  std::ifstream grin; // grammar file
-  grin.open(argv[1]);
-  
-  std::ifstream yin; // file to be checked
-  yin.open(argv[2]);
-  
+  const string grammar_filename = argv[1];
   YAML::Node gr;
   try {
-    YAML::Parser parser(grin);
-    parser.GetNextDocument(gr);
+    gr = YAML::LoadFile(grammar_filename);
   } catch(const YAML::Exception& e) {
     std::cerr << "Error reading grammar: " << e.what() << "\n";
     return 1;
   }
 
+  const string doc_filename = argv[2];
   YAML::Node doc;
   try {
-    YAML::Parser parser(yin);
-    parser.GetNextDocument(doc);
+    doc = YAML::LoadFile(doc_filename);
   } catch(const YAML::Exception& e) {
     std::cerr << "Error reading document: " << e.what() << "\n";
     return 2;
@@ -39,5 +33,3 @@ int main(int argc, char **argv)
   }
   return !ok;
 }
-
-

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
-#include "yaml.h"
+#include <yaml-cpp/yaml.h>
 #include "yatc.h"
 #include <ctype.h>
 
@@ -24,9 +24,9 @@ DataNodeDefinition DataBinderGen::make_map_type(const YAML::Node &mapNode, strin
   rsl.type[0] = toupper(rsl.type[0]);
   rsl.name = name;
 
-  for (YAML::Iterator i = mapNode.begin(); i != mapNode.end(); ++i) {
-    string key = i.first();
-    const YAML::Node &valueNode = i.second();
+  for (const auto &it : mapNode) {
+    string key = it.first.as<string>();
+    const YAML::Node &valueNode = it.second;
     DataNodeDefinition subrsl = make_types(valueNode, key);
     DataNodeDefinition *e = new DataNodeDefinition(subrsl);
     rsl.elems.push_back(e);
@@ -36,13 +36,13 @@ DataNodeDefinition DataBinderGen::make_map_type(const YAML::Node &mapNode, strin
 
 DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, string name)
 {
-  assert( doc.GetType() == YAML::CT_SEQUENCE );
+  assert( doc.IsSequence() );
 
   const YAML::Node& typespec_map = doc[0];
   //assert( num_keys(typespec_map) == 1);
 
-  string type = typespec_map.begin().first();
-  const YAML::Node& type_specifics = typespec_map.begin().second();
+  string type = typespec_map.begin()->first.as<string>();
+  const YAML::Node& type_specifics = typespec_map.begin()->second;
 
   DataNodeDefinition elem;
 
@@ -67,8 +67,8 @@ DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, string
   } else if (type == "enum") {
     elem.enum_def.name = to_lower_copy(elem.name);
     elem.enum_def.name[0] = toupper(elem.enum_def.name[0]);
-    for (YAML::Iterator i = type_specifics.begin(); i != type_specifics.end(); ++i) {
-      elem.enum_def.enum_values.push_back(*i);
+    for (const auto &it : type_specifics) {
+      elem.enum_def.enum_values.push_back(it.as<string>());
     }
     elem.kind_of_node = ENUM;
     elem.type = elem.enum_def.name;
@@ -102,17 +102,12 @@ DataNodeDefinition DataBinderGen::make_list_type(const YAML::Node &doc, string n
 
 DataNodeDefinition DataBinderGen::make_types(const YAML::Node& doc, string name)
 {
-  const YAML::Node *mapNode = 0;
-  const YAML::Node *listNode = 0;
-  DataNodeDefinition rsl;
-  if ((mapNode = doc.FindValue("map"))) {
-    rsl = make_map_type(*mapNode, name);
-  } else if ((listNode = doc.FindValue("list"))) {
-    rsl = make_list_type(*listNode, name);
-  } else {
-    rsl = make_scalar_type(doc, name);
+  if (doc["map"]) {
+    return make_map_type(doc["map"], name);
+  } else if (doc["list"]) {
+    return make_list_type(doc["list"], name);
   }
-  return rsl;
+  return make_scalar_type(doc, name);
 }
 
 void DataBinderGen::emit_enum_def(const DataNodeDefinition &elem, ostream& os)
@@ -179,7 +174,8 @@ bool DataBinderGen::emit_header(ostream& os)
 {
   os << "#include <vector>" << endl;
   os << "#include <string>" << endl;
-  os << "#include \"yaml.h\"" << endl;
+  os << "#include <yaml-cpp/yaml.h>" << endl;
+  os << "#include \"yatc.h\"" << endl;
   emit_header(root_data_defn, os);
   return true;
 }
@@ -271,12 +267,14 @@ bool DataBinderGen::write_put_operator_prolog(ostream& os, string type, bool pro
     os << ";";
   }
   os << endl;
+  return true;
 }
 
 bool DataBinderGen::write_put_operator_epilog(ostream& os)
 {
   os << "  return out;" << endl;
   os << "}" << endl;
+  return true;
 }
 
 #if 0

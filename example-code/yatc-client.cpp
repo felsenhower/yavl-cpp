@@ -6,15 +6,11 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-  std::ifstream fin;
-  fin.open(argv[1]);
   
   Top top;
-
+  const string doc_filename = argv[1];
   try {
-    YAML::Parser parser(fin);
-    YAML::Node doc;
-    parser.GetNextDocument(doc);
+    YAML::Node doc = YAML::LoadFile(doc_filename);
 
     // read YAML file into our data structures
     doc >> top;
