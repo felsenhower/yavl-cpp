@@ -37,7 +37,7 @@ class Validator {
     Errors errors;
 
     int num_keys(const YAML::Node &doc);
-    const std::string &type2str(YAML::NodeType::value t);
+    static const std::string &type2str(const YAML::NodeType::value t);
     bool validate_map(const YAML::Node &mapNode, const YAML::Node &doc);
     bool validate_leaf(const YAML::Node &gr, const YAML::Node &doc);
     bool validate_list(const YAML::Node &gr, const YAML::Node &doc);

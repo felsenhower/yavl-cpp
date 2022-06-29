@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <unordered_map>
 #include <yaml-cpp/yaml.h>
 
 #include "yavl.h"
@@ -31,27 +32,16 @@ std::string ctype2str<int>() {
   return "int";
 }
 
-const std::string &Validator::type2str(YAML::NodeType::value t) {
-  static std::string nonestr = "none";
-  static std::string scalarstr = "scalar";
-  static std::string liststr = "list";
-  static std::string mapstr = "map";
-  static std::string undefinedstr = "undefined";
-
-  switch (t) {
-    case YAML::NodeType::Null:
-      return nonestr;
-    case YAML::NodeType::Scalar:
-      return scalarstr;
-    case YAML::NodeType::Sequence:
-      return liststr;
-    case YAML::NodeType::Map:
-      return mapstr;
-    case YAML::NodeType::Undefined:
-      return undefinedstr;
-  }
-  assert(0);
-  return nonestr;
+const std::string &Validator::type2str(const YAML::NodeType::value t) {
+  static const std::unordered_map<const YAML::NodeType::value, const std::string> node_type_strings = {
+    {YAML::NodeType::Null, "none"},
+    {YAML::NodeType::Scalar, "scalar"},
+    {YAML::NodeType::Sequence, "list"},
+    {YAML::NodeType::Map, "map"},
+    {YAML::NodeType::Undefined, "undefined"}
+  };
+  assert(node_type_strings.contains(t));
+  return node_type_strings.at(t);
 }
 
 int Validator::num_keys(const YAML::Node &doc) {
