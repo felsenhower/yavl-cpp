@@ -5,7 +5,14 @@
 #include "yavl.h"
 
 int main(int argc, char **argv) {
+
+  if (argc < 3) {
+    std::cerr << "Not enough arguments!\n";
+    return EXIT_FAILURE;
+  }
   const std::string grammar_filename = argv[1];
+  const std::string doc_filename = argv[2];
+  
   YAML::Node gr;
   try {
     gr = YAML::LoadFile(grammar_filename);
@@ -13,8 +20,7 @@ int main(int argc, char **argv) {
     std::cerr << "Error reading grammar: " << e.what() << "\n";
     return EXIT_FAILURE;
   }
-
-  const std::string doc_filename = argv[2];
+  
   YAML::Node doc;
   try {
     doc = YAML::LoadFile(doc_filename);

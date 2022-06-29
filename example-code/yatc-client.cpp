@@ -4,8 +4,13 @@
 #include "top.h"
 
 int main(int argc, char **argv) {
-  Top top;
+  if (argc < 2) {
+    std::cerr << "Not enough arguments!\n";
+    return EXIT_FAILURE;
+  }
   const std::string doc_filename = argv[1];
+  
+  Top top;
   try {
     YAML::Node doc = YAML::LoadFile(doc_filename);
 

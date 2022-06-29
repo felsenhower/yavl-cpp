@@ -6,8 +6,14 @@
 #include "yatc.h"
 
 int main(int argc, char **argv) {
-  YAML::Node gr;
+
+  if (argc < 2) {
+    std::cerr << "Not enough arguments!\n";
+    return EXIT_FAILURE;
+  }
   const std::string grammar_filename = argv[1];
+  
+  YAML::Node gr;
   try {
     gr = YAML::LoadFile(grammar_filename);
   } catch (const YAML::Exception &e) {
