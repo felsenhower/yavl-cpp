@@ -1,12 +1,11 @@
 #include <fstream>
 #include <iostream>
+
 #include "top.h"
 
 using namespace std;
 
-int main(int argc, char **argv)
-{
-  
+int main(int argc, char **argv) {
   Top top;
   const string doc_filename = argv[1];
   try {
@@ -22,8 +21,6 @@ int main(int argc, char **argv)
 
     // dump it to disk
     cout << out.c_str() << endl;
-  } catch(const YAML::Exception& e) {
-    std::cerr << e.what() << "\n";
-  }
+  } catch (const YAML::Exception &e) { std::cerr << e.what() << "\n"; }
   return 0;
 }

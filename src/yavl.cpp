@@ -1,46 +1,41 @@
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 #include <yaml-cpp/yaml.h>
+
 #include "yavl.h"
 
 using namespace std;
 using namespace YAVL;
 
 namespace YAVL {
-  template <>
-  std::string ctype2str<unsigned long long>()
-  {
-    return "unsigned long long";
-  }
-
-  template <>
-  std::string ctype2str<string>()
-  {
-    return "string";
-  }
-
-  template <>
-  std::string ctype2str<long long>()
-  {
-    return "long long";
-  }
-
-  template <>
-  std::string ctype2str<unsigned int>()
-  {
-    return "unsigned int";
-  }
-
-  template <>
-  std::string ctype2str<int>()
-  {
-    return "int";
-  }
-
+template<>
+std::string ctype2str<unsigned long long>() {
+  return "unsigned long long";
 }
 
-ostream& operator << (ostream& os, const Path& path)
-{
+template<>
+std::string ctype2str<string>() {
+  return "string";
+}
+
+template<>
+std::string ctype2str<long long>() {
+  return "long long";
+}
+
+template<>
+std::string ctype2str<unsigned int>() {
+  return "unsigned int";
+}
+
+template<>
+std::string ctype2str<int>() {
+  return "int";
+}
+
+} // namespace YAVL
+
+ostream &operator<<(ostream &os, const Path &path) {
   bool first = true;
   for (const auto &it : path) {
     // no dot before list indexes and before first element
@@ -53,8 +48,7 @@ ostream& operator << (ostream& os, const Path& path)
   return os;
 }
 
-ostream& operator << (ostream& os, const Exception& v)
-{
+ostream &operator<<(ostream &os, const Exception &v) {
   os << "REASON: " << v.why << endl;
   os << "  doc path: " << v.doc_path << endl;
   os << "  treespec path: " << v.gr_path << endl;
@@ -62,16 +56,14 @@ ostream& operator << (ostream& os, const Exception& v)
   return os;
 }
 
-ostream& operator << (ostream& os, const Errors& v)
-{
-  for (const auto &it: v) {
+ostream &operator<<(ostream &os, const Errors &v) {
+  for (const auto &it : v) {
     os << it;
   }
   return os;
 }
 
-const string& Validator::type2str(YAML::NodeType::value t)
-{
+const string &Validator::type2str(YAML::NodeType::value t) {
   static string nonestr = "none";
   static string scalarstr = "scalar";
   static string liststr = "list";
@@ -94,17 +86,15 @@ const string& Validator::type2str(YAML::NodeType::value t)
   return nonestr;
 }
 
-int Validator::num_keys(const YAML::Node& doc)
-{
+int Validator::num_keys(const YAML::Node &doc) {
   if (!doc.IsMap()) {
     return 0;
   }
   return doc.size();
 }
 
-bool Validator::validate_map(const YAML::Node &mapNode, const YAML::Node &doc)
-{
-  if(!doc.IsMap()) {
+bool Validator::validate_map(const YAML::Node &mapNode, const YAML::Node &doc) {
+  if (!doc.IsMap()) {
     string reason = "expected map, but found " + type2str(doc.Type());
     gen_error(Exception(reason, gr_path, doc_path));
     return false;
@@ -131,14 +121,13 @@ bool Validator::validate_map(const YAML::Node &mapNode, const YAML::Node &doc)
   return ok;
 }
 
-bool Validator::validate_leaf(const YAML::Node &gr, const YAML::Node &doc)
-{
-  assert( gr.IsSequence() );
-  const YAML::Node& typespec_map = gr[0];
-  assert( typespec_map.size() == 1);
+bool Validator::validate_leaf(const YAML::Node &gr, const YAML::Node &doc) {
+  assert(gr.IsSequence());
+  const YAML::Node &typespec_map = gr[0];
+  assert(typespec_map.size() == 1);
 
   string type = typespec_map.begin()->first.as<string>();
-  const YAML::Node& type_specifics = typespec_map.begin()->second;
+  const YAML::Node &type_specifics = typespec_map.begin()->second;
 
   bool ok = true;
   if (type == "string") {
@@ -169,8 +158,7 @@ bool Validator::validate_leaf(const YAML::Node &gr, const YAML::Node &doc)
   return ok;
 }
 
-bool Validator::validate_list(const YAML::Node &gr, const YAML::Node &doc)
-{
+bool Validator::validate_list(const YAML::Node &gr, const YAML::Node &doc) {
   if (!doc.IsSequence()) {
     string reason = "expected list, but found " + type2str(doc.Type());
     gen_error(Exception(reason, gr_path, doc_path));
@@ -191,8 +179,7 @@ bool Validator::validate_list(const YAML::Node &gr, const YAML::Node &doc)
   return ok;
 }
 
-bool Validator::validate_doc(const YAML::Node &gr, const YAML::Node &doc)
-{
+bool Validator::validate_doc(const YAML::Node &gr, const YAML::Node &doc) {
   bool ok = true;
 
   if (gr["map"]) {

@@ -1,17 +1,17 @@
 #include <fstream>
 #include <iostream>
 #include <yaml-cpp/yaml.h>
+
 #include "yavl.h"
 
 using namespace std;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   const string grammar_filename = argv[1];
   YAML::Node gr;
   try {
     gr = YAML::LoadFile(grammar_filename);
-  } catch(const YAML::Exception& e) {
+  } catch (const YAML::Exception &e) {
     std::cerr << "Error reading grammar: " << e.what() << "\n";
     return 1;
   }
@@ -20,7 +20,7 @@ int main(int argc, char **argv)
   YAML::Node doc;
   try {
     doc = YAML::LoadFile(doc_filename);
-  } catch(const YAML::Exception& e) {
+  } catch (const YAML::Exception &e) {
     std::cerr << "Error reading document: " << e.what() << "\n";
     return 2;
   }

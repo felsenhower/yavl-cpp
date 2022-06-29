@@ -1,14 +1,14 @@
-#include <stdio.h>
 #include <assert.h>
-#include <yaml-cpp/yaml.h>
-#include "yatc.h"
 #include <ctype.h>
+#include <stdio.h>
+#include <yaml-cpp/yaml.h>
+
+#include "yatc.h"
 
 using namespace std;
 using namespace YAVL;
 
-string YAVL::to_lower_copy(string s)
-{
+string YAVL::to_lower_copy(string s) {
   string rsl(s.size(), ' ');
   for (string::size_type i = 0; i < s.size(); ++i) {
     rsl[i] = tolower(s[i]);
@@ -16,8 +16,7 @@ string YAVL::to_lower_copy(string s)
   return rsl;
 }
 
-DataNodeDefinition DataBinderGen::make_map_type(const YAML::Node &mapNode, string name)
-{
+DataNodeDefinition DataBinderGen::make_map_type(const YAML::Node &mapNode, string name) {
   DataNodeDefinition rsl;
   rsl.kind_of_node = STRUCT;
   rsl.type = to_lower_copy(name);
@@ -34,15 +33,14 @@ DataNodeDefinition DataBinderGen::make_map_type(const YAML::Node &mapNode, strin
   return rsl;
 }
 
-DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, string name)
-{
-  assert( doc.IsSequence() );
+DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, string name) {
+  assert(doc.IsSequence());
 
-  const YAML::Node& typespec_map = doc[0];
+  const YAML::Node &typespec_map = doc[0];
   //assert( num_keys(typespec_map) == 1);
 
   string type = typespec_map.begin()->first.as<string>();
-  const YAML::Node& type_specifics = typespec_map.begin()->second;
+  const YAML::Node &type_specifics = typespec_map.begin()->second;
 
   DataNodeDefinition elem;
 
@@ -78,18 +76,17 @@ DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, string
   return elem;
 }
 
-DataNodeDefinition DataBinderGen::make_list_type(const YAML::Node &doc, string name)
-{
+DataNodeDefinition DataBinderGen::make_list_type(const YAML::Node &doc, string name) {
   DataNodeDefinition elem;
   elem.name = name;
   elem.kind_of_node = VECTOR;
-  
+
   //assert(num_keys(doc) == 1);
 
   string vec_kind_of_node = to_lower_copy(name);
   vec_kind_of_node[0] = toupper(vec_kind_of_node[0]);
-  if (*(vec_kind_of_node.end()-1) == 's') {
-     vec_kind_of_node.erase(vec_kind_of_node.end()-1);
+  if (*(vec_kind_of_node.end() - 1) == 's') {
+    vec_kind_of_node.erase(vec_kind_of_node.end() - 1);
   }
   DataNodeDefinition subrsl = make_types(doc, vec_kind_of_node);
   DataNodeDefinition *e = new DataNodeDefinition(subrsl);
@@ -100,8 +97,7 @@ DataNodeDefinition DataBinderGen::make_list_type(const YAML::Node &doc, string n
   return elem;
 }
 
-DataNodeDefinition DataBinderGen::make_types(const YAML::Node& doc, string name)
-{
+DataNodeDefinition DataBinderGen::make_types(const YAML::Node &doc, string name) {
   if (doc["map"]) {
     return make_map_type(doc["map"], name);
   } else if (doc["list"]) {
@@ -110,12 +106,11 @@ DataNodeDefinition DataBinderGen::make_types(const YAML::Node& doc, string name)
   return make_scalar_type(doc, name);
 }
 
-void DataBinderGen::emit_enum_def(const DataNodeDefinition &elem, ostream& os)
-{
+void DataBinderGen::emit_enum_def(const DataNodeDefinition &elem, ostream &os) {
   os << "enum " << elem.enum_def.name << " { ";
   vector<string>::const_iterator i = elem.enum_def.enum_values.begin();
   for (; i != elem.enum_def.enum_values.end(); ++i) {
-    if (i !=  elem.enum_def.enum_values.begin()) {
+    if (i != elem.enum_def.enum_values.begin()) {
       os << ", ";
     }
     os << *i;
@@ -125,24 +120,23 @@ void DataBinderGen::emit_enum_def(const DataNodeDefinition &elem, ostream& os)
   write_put_operator_prolog(os, elem.type, true /* prototype */);
 }
 
-bool DataBinderGen::emit_header(const DataNodeDefinition &elem, ostream& os)
-{
+bool DataBinderGen::emit_header(const DataNodeDefinition &elem, ostream &os) {
   switch (elem.kind_of_node) {
     case ENUM:
       emit_enum_def(elem, os);
       break;
 
     case VECTOR:
-       if (elem.listelem_def->kind_of_node != BUILTIN) {
-         emit_header(*elem.listelem_def, os);
-       }
+      if (elem.listelem_def->kind_of_node != BUILTIN) {
+        emit_header(*elem.listelem_def, os);
+      }
       break;
 
     case BUILTIN:
       break;
 
     case STRUCT:
-      vector<DataNodeDefinition*>::const_iterator i = elem.elems.begin();
+      vector<DataNodeDefinition *>::const_iterator i = elem.elems.begin();
       // pass one: emit what I depend on
       for (; i != elem.elems.end(); ++i) {
         if (((*i)->kind_of_node == ENUM)) {
@@ -159,7 +153,7 @@ bool DataBinderGen::emit_header(const DataNodeDefinition &elem, ostream& os)
       os << "struct " << elem.type << " {" << endl;
       i = elem.elems.begin();
       for (; i != elem.elems.end(); ++i) {
-        const DataNodeDefinition& e = **i;
+        const DataNodeDefinition &e = **i;
         os << "  " << e.type << " " << e.name << ";" << endl;
       }
       os << "};" << endl;
@@ -170,8 +164,7 @@ bool DataBinderGen::emit_header(const DataNodeDefinition &elem, ostream& os)
   return true;
 }
 
-bool DataBinderGen::emit_header(ostream& os)
-{
+bool DataBinderGen::emit_header(ostream &os) {
   os << "#include <vector>" << endl;
   os << "#include <string>" << endl;
   os << "#include <yaml-cpp/yaml.h>" << endl;
@@ -180,8 +173,7 @@ bool DataBinderGen::emit_header(ostream& os)
   return true;
 }
 
-void DataBinderGen::emit_enum_reader(const DataNodeDefinition &elem, ostream& os)
-{
+void DataBinderGen::emit_enum_reader(const DataNodeDefinition &elem, ostream &os) {
   os << "void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << endl;
   os << "  string tmp; node >> tmp;" << endl;
   vector<string>::const_iterator i = elem.enum_def.enum_values.begin();
@@ -191,8 +183,7 @@ void DataBinderGen::emit_enum_reader(const DataNodeDefinition &elem, ostream& os
   os << "}" << endl;
 }
 
-bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, ostream& os)
-{
+bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, ostream &os) {
   switch (elem.kind_of_node) {
     case ENUM:
       emit_enum_reader(elem, os);
@@ -202,9 +193,9 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, ostream& os)
       break;
 
     case VECTOR:
-       if (elem.listelem_def->kind_of_node != BUILTIN) {
-         emit_reader(*elem.listelem_def, os);
-       }
+      if (elem.listelem_def->kind_of_node != BUILTIN) {
+        emit_reader(*elem.listelem_def, os);
+      }
       break;
 
     case BUILTIN:
@@ -214,7 +205,7 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, ostream& os)
       break;
 
     case STRUCT:
-      vector<DataNodeDefinition*>::const_iterator i = elem.elems.begin();
+      vector<DataNodeDefinition *>::const_iterator i = elem.elems.begin();
       // pass one: emit what I depend on
       for (; i != elem.elems.end(); ++i) {
         if (((*i)->kind_of_node == ENUM)) {
@@ -231,7 +222,7 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, ostream& os)
       os << "void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << endl;
       i = elem.elems.begin();
       for (; i != elem.elems.end(); ++i) {
-        const DataNodeDefinition& e = **i;
+        const DataNodeDefinition &e = **i;
         os << "  node[\"" << e.name << "\"] >> obj." << e.name << ";" << endl;
       }
       os << "}" << endl;
@@ -240,16 +231,14 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, ostream& os)
   return true;
 }
 
-bool DataBinderGen::emit_reader(ostream& os)
-{
+bool DataBinderGen::emit_reader(ostream &os) {
   os << "#include \"" << to_lower_copy(topname) << ".h\"" << endl;
   os << "using namespace std;" << endl;
   emit_reader(root_data_defn, os);
   return true;
 }
 
-void DataBinderGen::emit_enum_dumper(const DataNodeDefinition &elem, ostream& os)
-{
+void DataBinderGen::emit_enum_dumper(const DataNodeDefinition &elem, ostream &os) {
   write_put_operator_prolog(os, elem.type);
   vector<string>::const_iterator i = elem.enum_def.enum_values.begin();
   for (; i != elem.enum_def.enum_values.end(); ++i) {
@@ -258,8 +247,7 @@ void DataBinderGen::emit_enum_dumper(const DataNodeDefinition &elem, ostream& os
   write_put_operator_epilog(os);
 }
 
-bool DataBinderGen::write_put_operator_prolog(ostream& os, string type, bool prototype)
-{
+bool DataBinderGen::write_put_operator_prolog(ostream &os, string type, bool prototype) {
   os << "YAML::Emitter& operator <<(YAML::Emitter& out, const " << type << " &obj)";
   if (!prototype) {
     os << " {";
@@ -270,8 +258,7 @@ bool DataBinderGen::write_put_operator_prolog(ostream& os, string type, bool pro
   return true;
 }
 
-bool DataBinderGen::write_put_operator_epilog(ostream& os)
-{
+bool DataBinderGen::write_put_operator_epilog(ostream &os) {
   os << "  return out;" << endl;
   os << "}" << endl;
   return true;
@@ -325,8 +312,7 @@ bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, ostream& os)
 }
 #endif
 
-bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, ostream& os)
-{
+bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, ostream &os) {
   switch (elem.kind_of_node) {
     case ENUM:
       emit_enum_dumper(elem, os);
@@ -336,16 +322,16 @@ bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, ostream& os)
       break;
 
     case VECTOR:
-       if (elem.listelem_def->kind_of_node != BUILTIN) {
-         emit_dumper(*elem.listelem_def, os);
-       }
+      if (elem.listelem_def->kind_of_node != BUILTIN) {
+        emit_dumper(*elem.listelem_def, os);
+      }
       break;
 
     case BUILTIN:
       break;
 
     case STRUCT:
-      vector<DataNodeDefinition*>::const_iterator i = elem.elems.begin();
+      vector<DataNodeDefinition *>::const_iterator i = elem.elems.begin();
       // pass one: emit what I depend on
       for (; i != elem.elems.end(); ++i) {
         if (((*i)->kind_of_node == ENUM)) {
@@ -363,7 +349,7 @@ bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, ostream& os)
       os << "  out << YAML::BeginMap;" << endl;
       i = elem.elems.begin();
       for (; i != elem.elems.end(); ++i) {
-        const DataNodeDefinition& e = **i;
+        const DataNodeDefinition &e = **i;
         os << "  out << YAML::Key << \"" << e.name << "\";" << endl;
         os << "  out << YAML::Value << obj." << e.name << ";" << endl;
       }
@@ -374,9 +360,7 @@ bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, ostream& os)
   return true;
 }
 
-bool DataBinderGen::emit_dumper(ostream& os)
-{
+bool DataBinderGen::emit_dumper(ostream &os) {
   emit_dumper(root_data_defn, os);
   return true;
 }
-
