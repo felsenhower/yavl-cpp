@@ -232,7 +232,6 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, std::ostream &os
 
 bool DataBinderGen::emit_reader(std::ostream &os) {
   os << "#include \"" << to_lower_copy(topname) << ".h\"" << std::endl;
-  os << "using namespace std;" << std::endl;
   emit_reader(root_data_defn, os);
   return true;
 }
