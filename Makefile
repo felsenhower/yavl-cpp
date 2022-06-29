@@ -14,7 +14,7 @@ YATC_CLIENT_SOURCES := example-code/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_S
 
 CXX = g++
 INCLUDE_DIRS := $(YAML_CPP_PATH)/include src $(BUILD_DIR)
-CXXFLAGS = -O3
+CXXFLAGS = -O3 -std=c++20
 CXXFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
 
 default: checker tc $(YAML_CPP_SOURCES)
