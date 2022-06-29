@@ -1,7 +1,5 @@
 #include <algorithm>
-#include <assert.h>
-#include <ctype.h>
-#include <stdio.h>
+#include <cassert>
 #include <yaml-cpp/yaml.h>
 
 #include "yatc.h"

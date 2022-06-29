@@ -1,6 +1,5 @@
 #include <algorithm>
-#include <assert.h>
-#include <stdio.h>
+#include <cassert>
 #include <unordered_map>
 #include <yaml-cpp/yaml.h>
 
