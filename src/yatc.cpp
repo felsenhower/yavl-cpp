@@ -249,54 +249,6 @@ bool DataBinderGen::write_put_operator_epilog(std::ostream &os) {
   return true;
 }
 
-#if 0
-bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, std::ostream& os)
-{
-  switch (elem.kind_of_node) {
-    case ENUM:
-      emit_enum_dumper(elem, os);
-      write_put_operator_prolog(os, elem.type);
-      os << "  os << \"" << elem.name << ": \" << obj." << elem.name << " << std::endl;" << std::endl;
-      write_put_operator_epilog(os);
-      break;
-
-    case VECTOR:
-       if (elem.listelem_def->kind_of_node != BUILTIN) {
-         emit_dumper(*elem.listelem_def, os);
-       }
-      break;
-
-    case BUILTIN:
-      break;
-
-    case STRUCT:
-      std::vector<DataNodeDefinition*>::const_iterator i = elem.elems.begin();
-      // pass one: emit what I depend on
-      for (; i != elem.elems.end(); ++i) {
-        if (((*i)->kind_of_node == ENUM)) {
-          emit_enum_dumper(**i, os);
-        } else if ((*i)->kind_of_node == STRUCT) {
-          emit_dumper(**i, os);
-        } else if ((*i)->kind_of_node == VECTOR) {
-          if ((*i)->listelem_def->kind_of_node != BUILTIN) {
-            emit_dumper(*((*i)->listelem_def), os);
-          }
-        }
-      }
-      // pass two: emit myself
-      write_put_operator_prolog(os, elem.type);
-      i = elem.elems.begin();
-      for (; i != elem.elems.end(); ++i) {
-        const DataNodeDefinition& e = **i;
-        os << "  os << \"" << e.name << ": \" << obj." << e.name << " << std::endl;" << std::endl;
-      }
-      write_put_operator_epilog(os);
-      break;
-  }
-  return true;
-}
-#endif
-
 bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, std::ostream &os) {
   switch (elem.kind_of_node) {
     case ENUM:
