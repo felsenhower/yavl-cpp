@@ -21,10 +21,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  std::string topname(argv[2]);
-  YAVL::DataBinderGen yatc(gr, topname);
-
+  const std::string topname(argv[2]);
   const std::string outfile = topname + ".h";
   std::ofstream hf(outfile);
-  yatc.emit_header(hf);
+  YAVL::DataBinderGen::emit_header(gr, topname, hf);
 }

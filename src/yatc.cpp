@@ -354,7 +354,12 @@ void DataBinderGen::emit_header(std::ostream &os) {
   emit_declarations(os);
   emit_reader(os);
   emit_dumper(os);
-
 }
+
+void DataBinderGen::emit_header(const YAML::Node &gr, std::string topname, std::ostream &os) {
+  DataBinderGen emitter(gr, topname);
+  emitter.emit_header(os);
+}
+  
 
 } // namespace YAVL

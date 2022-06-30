@@ -32,6 +32,9 @@ struct DataNodeDefinition {
 };
 
 class DataBinderGen {
+  public:
+    static void emit_header(const YAML::Node &_gr, std::string _topname, std::ostream &os);
+    
   protected:
     const YAML::Node &gr; // tree for grammar
     DataNodeDefinition root_data_defn;
@@ -53,7 +56,6 @@ class DataBinderGen {
     bool write_put_operator_epilog(std::ostream &os);
     bool write_put_operator_prolog(std::ostream &os, std::string type, bool prototype = false);
 
-  public:
     DataBinderGen(const YAML::Node &_gr, std::string _topname) : gr(_gr), topname(_topname) {
       root_data_defn = make_types(gr, topname);
     };
