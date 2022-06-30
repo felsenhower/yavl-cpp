@@ -154,8 +154,6 @@ bool DataBinderGen::emit_declarations(const DataNodeDefinition &elem, std::ostre
 
 bool DataBinderGen::emit_declarations(std::ostream &os) {
   os << "#pragma once" << std::endl;
-  os << "#include <vector>" << std::endl;
-  os << "#include <string>" << std::endl;
   os << "#include <yaml-cpp/yaml.h>" << std::endl;
   os << "#include \"yavl-cpp/yatc.h\"" << std::endl;
   emit_declarations(root_data_defn, os);
