@@ -14,7 +14,7 @@ std::string to_lower_copy(const std::string &s) {
 
 DataNodeDefinition DataBinderGen::make_map_type(const YAML::Node &mapNode, std::string name) {
   DataNodeDefinition rsl;
-  rsl.kind_of_node = STRUCT;
+  rsl.kind_of_node = DataKind::map_kind;
   rsl.type = to_lower_copy(name);
   rsl.type[0] = toupper(rsl.type[0]);
   rsl.name = name;
@@ -44,25 +44,25 @@ DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, std::s
 
   if (type == "string") {
     elem.type = "std::string";
-    elem.kind_of_node = BUILTIN;
+    elem.kind_of_node = DataKind::scalar_kind;
   } else if (type == "uint64_t") {
     elem.type = "uint64_t";
-    elem.kind_of_node = BUILTIN;
+    elem.kind_of_node = DataKind::scalar_kind;
   } else if (type == "int64_t") {
     elem.type = "int64_t";
-    elem.kind_of_node = BUILTIN;
+    elem.kind_of_node = DataKind::scalar_kind;
   } else if (type == "int") {
     elem.type = "int";
-    elem.kind_of_node = BUILTIN;
+    elem.kind_of_node = DataKind::scalar_kind;
   } else if (type == "uint") {
     elem.type = "unsigned int";
-    elem.kind_of_node = BUILTIN;
+    elem.kind_of_node = DataKind::scalar_kind;
   } else if (type == "enum") {
     elem.enum_def.name = to_lower_copy(elem.name);
     elem.enum_def.name[0] = toupper(elem.enum_def.name[0]);
     std::transform(type_specifics.begin(), type_specifics.end(), std::back_inserter(elem.enum_def.enum_values),
         [](const auto &it) {return it.template as<std::string>();});
-    elem.kind_of_node = ENUM;
+    elem.kind_of_node = DataKind::enum_kind;
     elem.type = elem.enum_def.name;
   }
   return elem;
@@ -71,7 +71,7 @@ DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, std::s
 DataNodeDefinition DataBinderGen::make_list_type(const YAML::Node &doc, std::string name) {
   DataNodeDefinition elem;
   elem.name = name;
-  elem.kind_of_node = VECTOR;
+  elem.kind_of_node = DataKind::list_kind;
 
   //assert(num_keys(doc) == 1);
 
@@ -112,29 +112,29 @@ void DataBinderGen::emit_enum_declaration(const DataNodeDefinition &elem) {
 
 void DataBinderGen::emit_declarations(const DataNodeDefinition &elem) {
   switch (elem.kind_of_node) {
-    case ENUM:
+    case DataKind::enum_kind:
       emit_enum_declaration(elem);
       break;
 
-    case VECTOR:
-      if (elem.listelem_def->kind_of_node != BUILTIN) {
+    case DataKind::list_kind:
+      if (elem.listelem_def->kind_of_node != DataKind::scalar_kind) {
         emit_declarations(*elem.listelem_def);
       }
       break;
 
-    case BUILTIN:
+    case DataKind::scalar_kind:
       break;
 
-    case STRUCT:
+    case DataKind::map_kind:
       std::vector<DataNodeDefinition *>::const_iterator i = elem.elems.begin();
       // pass one: emit what I depend on
       for (; i != elem.elems.end(); ++i) {
-        if (((*i)->kind_of_node == ENUM)) {
+        if (((*i)->kind_of_node == DataKind::enum_kind)) {
           emit_enum_declaration(**i);
-        } else if ((*i)->kind_of_node == STRUCT) {
+        } else if ((*i)->kind_of_node == DataKind::map_kind) {
           emit_declarations(**i);
-        } else if ((*i)->kind_of_node == VECTOR) {
-          if ((*i)->listelem_def->kind_of_node != BUILTIN) {
+        } else if ((*i)->kind_of_node == DataKind::list_kind) {
+          if ((*i)->listelem_def->kind_of_node != DataKind::scalar_kind) {
             emit_declarations(*((*i)->listelem_def));
           }
         }
@@ -169,35 +169,35 @@ void DataBinderGen::emit_enum_reader(const DataNodeDefinition &elem) {
 
 void DataBinderGen::emit_reader(const DataNodeDefinition &elem) {
   switch (elem.kind_of_node) {
-    case ENUM:
+    case DataKind::enum_kind:
       emit_enum_reader(elem);
       os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
       os << "  node[\"" << elem.name << "\"] >> obj." << elem.name << ";" << std::endl;
       os << "}" << std::endl;
       break;
 
-    case VECTOR:
-      if (elem.listelem_def->kind_of_node != BUILTIN) {
+    case DataKind::list_kind:
+      if (elem.listelem_def->kind_of_node != DataKind::scalar_kind) {
         emit_reader(*elem.listelem_def);
       }
       break;
 
-    case BUILTIN:
+    case DataKind::scalar_kind:
       os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
       os << "  node[\"" << elem.name << "\"] >> obj." << elem.name << ";" << std::endl;
       os << "}" << std::endl;
       break;
 
-    case STRUCT:
+    case DataKind::map_kind:
       std::vector<DataNodeDefinition *>::const_iterator i = elem.elems.begin();
       // pass one: emit what I depend on
       for (; i != elem.elems.end(); ++i) {
-        if (((*i)->kind_of_node == ENUM)) {
+        if (((*i)->kind_of_node == DataKind::enum_kind)) {
           emit_enum_reader(**i);
-        } else if ((*i)->kind_of_node == STRUCT) {
+        } else if ((*i)->kind_of_node == DataKind::map_kind) {
           emit_reader(**i);
-        } else if ((*i)->kind_of_node == VECTOR) {
-          if ((*i)->listelem_def->kind_of_node != BUILTIN) {
+        } else if ((*i)->kind_of_node == DataKind::list_kind) {
+          if ((*i)->listelem_def->kind_of_node != DataKind::scalar_kind) {
             emit_reader(*((*i)->listelem_def));
           }
         }
@@ -226,7 +226,7 @@ void DataBinderGen::emit_enum_dumper(const DataNodeDefinition &elem) {
 
 void DataBinderGen::emit_dumper(const DataNodeDefinition &elem) {
   switch (elem.kind_of_node) {
-    case ENUM:
+    case DataKind::enum_kind:
       emit_enum_dumper(elem);
       os << "inline YAML::Emitter& operator <<(YAML::Emitter& out, const " << elem.type << " &obj) {" << std::endl;
       os << "  out << obj." << elem.name << ";" << std::endl;
@@ -234,25 +234,25 @@ void DataBinderGen::emit_dumper(const DataNodeDefinition &elem) {
       os << "}" << std::endl;
       break;
 
-    case VECTOR:
-      if (elem.listelem_def->kind_of_node != BUILTIN) {
+    case DataKind::list_kind:
+      if (elem.listelem_def->kind_of_node != DataKind::scalar_kind) {
         emit_dumper(*elem.listelem_def);
       }
       break;
 
-    case BUILTIN:
+    case DataKind::scalar_kind:
       break;
 
-    case STRUCT:
+    case DataKind::map_kind:
       std::vector<DataNodeDefinition *>::const_iterator i = elem.elems.begin();
       // pass one: emit what I depend on
       for (; i != elem.elems.end(); ++i) {
-        if (((*i)->kind_of_node == ENUM)) {
+        if (((*i)->kind_of_node == DataKind::enum_kind)) {
           emit_enum_dumper(**i);
-        } else if ((*i)->kind_of_node == STRUCT) {
+        } else if ((*i)->kind_of_node == DataKind::map_kind) {
           emit_dumper(**i);
-        } else if ((*i)->kind_of_node == VECTOR) {
-          if ((*i)->listelem_def->kind_of_node != BUILTIN) {
+        } else if ((*i)->kind_of_node == DataKind::list_kind) {
+          if ((*i)->listelem_def->kind_of_node != DataKind::scalar_kind) {
             emit_dumper(*((*i)->listelem_def));
           }
         }

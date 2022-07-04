@@ -9,12 +9,11 @@
 namespace YAVL {
 std::string to_lower_copy(const std::string &s);
 
-// intentionally named 'kind' to avoid confusion with 'type' :)
-enum KindOfDataNodeDefinition {
-  BUILTIN,
-  VECTOR,
-  STRUCT,
-  ENUM
+enum class DataKind {
+  scalar_kind,
+  map_kind,
+  list_kind,
+  enum_kind
 };
 
 struct EnumDefinition {
@@ -23,7 +22,7 @@ struct EnumDefinition {
 };
 
 struct DataNodeDefinition {
-    KindOfDataNodeDefinition kind_of_node; // what kind of definition is this
+    DataKind kind_of_node; // what kind of definition is this
     std::string name; // identifier to which data in this node will be bound
     std::string type; // C++-compatible type
     EnumDefinition enum_def; // if node is for an ENUM
