@@ -98,7 +98,7 @@ DataNodeDefinition DataBinderGen::make_types(const YAML::Node &doc, std::string 
   return make_scalar_type(doc, name);
 }
 
-void DataBinderGen::emit_enum_def(const DataNodeDefinition &elem, std::ostream &os) {
+void DataBinderGen::emit_enum_declaration(const DataNodeDefinition &elem) {
   os << "enum " << elem.enum_def.name << " { ";
   std::vector<std::string>::const_iterator i = elem.enum_def.enum_values.begin();
   for (; i != elem.enum_def.enum_values.end(); ++i) {
@@ -110,15 +110,15 @@ void DataBinderGen::emit_enum_def(const DataNodeDefinition &elem, std::ostream &
   os << " };" << std::endl;
 }
 
-bool DataBinderGen::emit_declarations(const DataNodeDefinition &elem, std::ostream &os) {
+void DataBinderGen::emit_declarations(const DataNodeDefinition &elem) {
   switch (elem.kind_of_node) {
     case ENUM:
-      emit_enum_def(elem, os);
+      emit_enum_declaration(elem);
       break;
 
     case VECTOR:
       if (elem.listelem_def->kind_of_node != BUILTIN) {
-        emit_declarations(*elem.listelem_def, os);
+        emit_declarations(*elem.listelem_def);
       }
       break;
 
@@ -130,12 +130,12 @@ bool DataBinderGen::emit_declarations(const DataNodeDefinition &elem, std::ostre
       // pass one: emit what I depend on
       for (; i != elem.elems.end(); ++i) {
         if (((*i)->kind_of_node == ENUM)) {
-          emit_enum_def(**i, os);
+          emit_enum_declaration(**i);
         } else if ((*i)->kind_of_node == STRUCT) {
-          emit_declarations(**i, os);
+          emit_declarations(**i);
         } else if ((*i)->kind_of_node == VECTOR) {
           if ((*i)->listelem_def->kind_of_node != BUILTIN) {
-            emit_declarations(*((*i)->listelem_def), os);
+            emit_declarations(*((*i)->listelem_def));
           }
         }
       }
@@ -149,18 +149,15 @@ bool DataBinderGen::emit_declarations(const DataNodeDefinition &elem, std::ostre
       os << "};" << std::endl;
       break;
   }
-  return true;
 }
 
-bool DataBinderGen::emit_declarations(std::ostream &os) {
+void DataBinderGen::emit_includes() {
   os << "#pragma once" << std::endl;
   os << "#include <yaml-cpp/yaml.h>" << std::endl;
   os << "#include \"yavl-cpp/yatc.h\"" << std::endl;
-  emit_declarations(root_data_defn, os);
-  return true;
 }
 
-void DataBinderGen::emit_enum_reader(const DataNodeDefinition &elem, std::ostream &os) {
+void DataBinderGen::emit_enum_reader(const DataNodeDefinition &elem) {
   os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
   os << "  std::string tmp; node >> tmp;" << std::endl;
   std::vector<std::string>::const_iterator i = elem.enum_def.enum_values.begin();
@@ -170,10 +167,10 @@ void DataBinderGen::emit_enum_reader(const DataNodeDefinition &elem, std::ostrea
   os << "}" << std::endl;
 }
 
-bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, std::ostream &os) {
+void DataBinderGen::emit_reader(const DataNodeDefinition &elem) {
   switch (elem.kind_of_node) {
     case ENUM:
-      emit_enum_reader(elem, os);
+      emit_enum_reader(elem);
       os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
       os << "  node[\"" << elem.name << "\"] >> obj." << elem.name << ";" << std::endl;
       os << "}" << std::endl;
@@ -181,7 +178,7 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, std::ostream &os
 
     case VECTOR:
       if (elem.listelem_def->kind_of_node != BUILTIN) {
-        emit_reader(*elem.listelem_def, os);
+        emit_reader(*elem.listelem_def);
       }
       break;
 
@@ -196,12 +193,12 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, std::ostream &os
       // pass one: emit what I depend on
       for (; i != elem.elems.end(); ++i) {
         if (((*i)->kind_of_node == ENUM)) {
-          emit_enum_reader(**i, os);
+          emit_enum_reader(**i);
         } else if ((*i)->kind_of_node == STRUCT) {
-          emit_reader(**i, os);
+          emit_reader(**i);
         } else if ((*i)->kind_of_node == VECTOR) {
           if ((*i)->listelem_def->kind_of_node != BUILTIN) {
-            emit_reader(*((*i)->listelem_def), os);
+            emit_reader(*((*i)->listelem_def));
           }
         }
       }
@@ -215,52 +212,31 @@ bool DataBinderGen::emit_reader(const DataNodeDefinition &elem, std::ostream &os
       os << "}" << std::endl;
       break;
   }
-  return true;
 }
 
-bool DataBinderGen::emit_reader(std::ostream &os) {
-  emit_reader(root_data_defn, os);
-  return true;
-}
-
-void DataBinderGen::emit_enum_dumper(const DataNodeDefinition &elem, std::ostream &os) {
-  write_put_operator_prolog(os, elem.type);
+void DataBinderGen::emit_enum_dumper(const DataNodeDefinition &elem) {
+  os << "inline YAML::Emitter& operator <<(YAML::Emitter& out, const " << elem.type << " &obj) {" << std::endl;
   std::vector<std::string>::const_iterator i = elem.enum_def.enum_values.begin();
   for (; i != elem.enum_def.enum_values.end(); ++i) {
     os << "  if (obj == " << *i << ") out << \"" << *i << "\";" << std::endl;
   }
-  write_put_operator_epilog(os);
-}
-
-bool DataBinderGen::write_put_operator_prolog(std::ostream &os, std::string type, bool prototype) {
-  os << "inline YAML::Emitter& operator <<(YAML::Emitter& out, const " << type << " &obj)";
-  if (!prototype) {
-    os << " {";
-  } else {
-    os << ";";
-  }
-  os << std::endl;
-  return true;
-}
-
-bool DataBinderGen::write_put_operator_epilog(std::ostream &os) {
   os << "  return out;" << std::endl;
   os << "}" << std::endl;
-  return true;
 }
 
-bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, std::ostream &os) {
+void DataBinderGen::emit_dumper(const DataNodeDefinition &elem) {
   switch (elem.kind_of_node) {
     case ENUM:
-      emit_enum_dumper(elem, os);
-      write_put_operator_prolog(os, elem.type);
+      emit_enum_dumper(elem);
+      os << "inline YAML::Emitter& operator <<(YAML::Emitter& out, const " << elem.type << " &obj) {" << std::endl;
       os << "  out << obj." << elem.name << ";" << std::endl;
-      write_put_operator_epilog(os);
+      os << "  return out;" << std::endl;
+      os << "}" << std::endl;
       break;
 
     case VECTOR:
       if (elem.listelem_def->kind_of_node != BUILTIN) {
-        emit_dumper(*elem.listelem_def, os);
+        emit_dumper(*elem.listelem_def);
       }
       break;
 
@@ -272,17 +248,17 @@ bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, std::ostream &os
       // pass one: emit what I depend on
       for (; i != elem.elems.end(); ++i) {
         if (((*i)->kind_of_node == ENUM)) {
-          emit_enum_dumper(**i, os);
+          emit_enum_dumper(**i);
         } else if ((*i)->kind_of_node == STRUCT) {
-          emit_dumper(**i, os);
+          emit_dumper(**i);
         } else if ((*i)->kind_of_node == VECTOR) {
           if ((*i)->listelem_def->kind_of_node != BUILTIN) {
-            emit_dumper(*((*i)->listelem_def), os);
+            emit_dumper(*((*i)->listelem_def));
           }
         }
       }
       // pass two: emit myself
-      write_put_operator_prolog(os, elem.type);
+      os << "inline YAML::Emitter& operator <<(YAML::Emitter& out, const " << elem.type << " &obj) {" << std::endl;
       os << "  out << YAML::BeginMap;" << std::endl;
       i = elem.elems.begin();
       for (; i != elem.elems.end(); ++i) {
@@ -291,26 +267,22 @@ bool DataBinderGen::emit_dumper(const DataNodeDefinition &elem, std::ostream &os
         os << "  out << YAML::Value << obj." << e.name << ";" << std::endl;
       }
       os << "  out << YAML::EndMap;" << std::endl;
-      write_put_operator_epilog(os);
+      os << "  return out;" << std::endl;
+      os << "}" << std::endl;
       break;
   }
-  return true;
 }
 
-bool DataBinderGen::emit_dumper(std::ostream &os) {
-  emit_dumper(root_data_defn, os);
-  return true;
-}
-
-void DataBinderGen::emit_header(std::ostream &os) {
-  emit_declarations(os);
-  emit_reader(os);
-  emit_dumper(os);
+void DataBinderGen::emit_header() {
+  emit_includes();
+  emit_declarations(root_data_defn);
+  emit_reader(root_data_defn);
+  emit_dumper(root_data_defn);
 }
 
 void DataBinderGen::emit_header(const YAML::Node &gr, std::string topname, std::ostream &os) {
-  DataBinderGen emitter(gr, topname);
-  emitter.emit_header(os);
+  DataBinderGen emitter(gr, topname, os);
+  emitter.emit_header();
 }
   
 

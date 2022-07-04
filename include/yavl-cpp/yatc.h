@@ -39,30 +39,24 @@ class DataBinderGen {
     const YAML::Node &gr; // tree for grammar
     DataNodeDefinition root_data_defn;
     std::string topname; // name of top-level data struct.
+    std::ostream &os;
+    
+    DataBinderGen(const YAML::Node &_gr, std::string _topname, std::ostream &os) : gr(_gr), topname(_topname), os(os) {
+      root_data_defn = make_types(gr, topname);
+    };
 
     DataNodeDefinition make_types(const YAML::Node &doc, std::string name);
     DataNodeDefinition make_list_type(const YAML::Node &gr, std::string name);
     DataNodeDefinition make_map_type(const YAML::Node &mapNode, std::string name);
     DataNodeDefinition make_scalar_type(const YAML::Node &gr, std::string name);
-
-    void emit_enum_def(const DataNodeDefinition &elem, std::ostream &os);
-    bool emit_declarations(const DataNodeDefinition &elem, std::ostream &os);
-    void emit_enum_reader(const DataNodeDefinition &elem, std::ostream &os);
-    bool emit_reader(const DataNodeDefinition &elem, std::ostream &os);
-
-    virtual void emit_enum_dumper(const DataNodeDefinition &elem, std::ostream &os);
-    virtual bool emit_dumper(const DataNodeDefinition &elem, std::ostream &os);
-
-    bool write_put_operator_epilog(std::ostream &os);
-    bool write_put_operator_prolog(std::ostream &os, std::string type, bool prototype = false);
-
-    DataBinderGen(const YAML::Node &_gr, std::string _topname) : gr(_gr), topname(_topname) {
-      root_data_defn = make_types(gr, topname);
-    };
-    void emit_header(std::ostream &os);
-    bool emit_declarations(std::ostream &os);
-    bool emit_reader(std::ostream &os);
-    virtual bool emit_dumper(std::ostream &os);
+    void emit_header();
+    void emit_includes();
+    void emit_declarations(const DataNodeDefinition &elem);
+    void emit_dumper(const DataNodeDefinition &elem);
+    void emit_reader(const DataNodeDefinition &elem);
+    void emit_enum_declaration(const DataNodeDefinition &elem);
+    void emit_enum_reader(const DataNodeDefinition &elem);
+    void emit_enum_dumper(const DataNodeDefinition &elem);
 };
 } // namespace YAVL
 
