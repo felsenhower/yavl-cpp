@@ -45,11 +45,11 @@ DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, std::s
   if (type == "string") {
     elem.type = "std::string";
     elem.kind_of_node = BUILTIN;
-  } else if (type == "uint64") {
-    elem.type = "unsigned long long";
+  } else if (type == "uint64_t") {
+    elem.type = "uint64_t";
     elem.kind_of_node = BUILTIN;
-  } else if (type == "int64") {
-    elem.type = "long long";
+  } else if (type == "int64_t") {
+    elem.type = "int64_t";
     elem.kind_of_node = BUILTIN;
   } else if (type == "int") {
     elem.type = "int";

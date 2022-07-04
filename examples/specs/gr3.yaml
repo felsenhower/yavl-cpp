@@ -10,4 +10,4 @@ map:
           a:
             list: [string: ]
           b:
-            list: [uint64: ]
+            list: [uint64_t: ]

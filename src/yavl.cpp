@@ -90,10 +90,10 @@ bool Validator::validate_leaf(const YAML::Node &gr, const YAML::Node &doc) {
   bool ok = true;
   if (type == "std::string") {
     attempt_to_convert<std::string>(doc, ok);
-  } else if (type == "uint64") {
-    attempt_to_convert<unsigned long long>(doc, ok);
-  } else if (type == "int64") {
-    attempt_to_convert<long long>(doc, ok);
+  } else if (type == "uint64_t") {
+    attempt_to_convert<uint64_t>(doc, ok);
+  } else if (type == "int64_t") {
+    attempt_to_convert<int64_t>(doc, ok);
   } else if (type == "int") {
     attempt_to_convert<int>(doc, ok);
   } else if (type == "uint") {
