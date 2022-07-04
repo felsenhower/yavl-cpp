@@ -1,5 +1,9 @@
 # yavl-cpp
 
+With `yavl-cpp`, you can validate your YAML documents against a specification and auto-generate C++ code containing struct definitions and data bindings (methods to convert YAML to generated structs and vice versa).
+
+---
+
 This project was auto-converted using `git-svn` from [Google Code Archive](https://code.google.com/archive/p/yavl-cpp/).
 
 The original branches `trunk` and `yatc` are archived.
