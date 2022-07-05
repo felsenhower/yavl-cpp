@@ -7,8 +7,8 @@ YAML_CPP_SOURCES := $(addprefix $(YAML_CPP_PATH)/src/,binary.cpp convert.cpp dep
 BUILD_DIR := build
 
 YATC_SOURCES := src/yatc.cpp
-TC_SOURCES := examples/apps/tc.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
-YATC_CLIENT_SOURCES := examples/apps/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
+TC_SOURCES := src/tc.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
+YATC_CLIENT_SOURCES := src/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
 
 CXX = g++
 INCLUDE_DIRS := $(YAML_CPP_PATH)/include include $(BUILD_DIR)
@@ -24,7 +24,7 @@ test: tc $(YAML_CPP_SOURCES)
 	$(MAKE) $(BUILD_DIR)/top.h
 	$(MAKE) $(BUILD_DIR)/yatc-client
 	@echo -e '\n>> Testing yatc-client...\n'
-	$(BUILD_DIR)/yatc-client examples/specs/example_1_sample_correct.yaml
+	$(BUILD_DIR)/yatc-client examples/example_1_sample_correct.yaml
 	@echo -e '\n>> All tests finished successfully.\n'
 
 tc: $(BUILD_DIR)/tc
@@ -40,7 +40,7 @@ $(BUILD_DIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $^
 
 $(BUILD_DIR)/top.h: $(BUILD_DIR)/tc
-	cd $(BUILD_DIR) ; ./tc $(shell realpath --relative-to=$(BUILD_DIR) .)/examples/specs/example_1_spec.yaml top.h
+	cd $(BUILD_DIR) ; ./tc $(shell realpath --relative-to=$(BUILD_DIR) .)/examples/example_1_spec.yaml top.h
 
 
 $(YAML_CPP_SUBMODULE_PATH)/%::
