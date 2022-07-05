@@ -3,6 +3,7 @@
 #include <optional>
 #include <tuple>
 #include <vector>
+#include <map>
 #include <yaml-cpp/yaml.h>
 
 template<typename T>
@@ -19,8 +20,16 @@ inline void operator>>(const YAML::Node &node, std::vector<T> &obj) {
   }
 }
 
-// template<typename KT,VT>
-// inline void operator>>(const YAML::Node &node, std::map<
+template<typename KT, typename VT>
+inline void operator>>(const YAML::Node &node, std::map<KT, VT> &obj) {
+  for (const auto &it : node) {
+    KT key;
+    VT val;
+    it.first >> key;
+    it.second >> val;
+    obj[key] = val;
+  }
+}
 
 template<typename T>
 inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &node) {

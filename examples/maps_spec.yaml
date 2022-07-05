@@ -1,0 +1,10 @@
+ExtraIncludes: [<map>]
+
+Types:
+    StructType:
+        a: int
+        b: int
+        c: int
+    TopType:
+        struct_var: StructType
+        map_var: std::map<std::string, int>
