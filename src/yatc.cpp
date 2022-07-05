@@ -6,19 +6,20 @@
 
 namespace YAVL {
 
-void CodeGenerator::emit_header(const YAML::Node &spec, std::ostream &outstream, const bool emit_declarations,
-    const bool emit_readers, const bool emit_writers) {
-  CodeGenerator generator(spec, outstream, emit_declarations, emit_readers, emit_writers);
+void CodeGenerator::emit_header(const YAML::Node &spec, std::ostream &outstream, const bool is_emit_declarations,
+    const bool is_emit_readers, const bool is_emit_writers, const bool is_emit_validator) {
+  CodeGenerator generator(spec, outstream, is_emit_declarations, is_emit_readers, is_emit_writers, is_emit_validator);
   generator.emit_header();
 }
 
-CodeGenerator::CodeGenerator(const YAML::Node &spec, std::ostream &outstream, const bool emit_declarations,
-    const bool emit_readers, const bool emit_writers)
+CodeGenerator::CodeGenerator(const YAML::Node &spec, std::ostream &outstream, const bool is_emit_declarations,
+    const bool is_emit_readers, const bool is_emit_writers, const bool is_emit_validator)
     : spec(spec),
       outstream(outstream),
-      emit_declarations(emit_declarations),
-      emit_readers(emit_readers),
-      emit_writers(emit_writers) {}
+      is_emit_declarations(is_emit_declarations),
+      is_emit_readers(is_emit_readers),
+      is_emit_writers(is_emit_writers),
+      is_emit_validator(is_emit_validator) {}
 
 void CodeGenerator::emit_header() {
   YAML::Node types = spec["Types"];
@@ -29,11 +30,14 @@ void CodeGenerator::emit_header() {
     const YAML::Node type_info = type_def.second;
     emit_type(type_name, type_info);
   }
+  if (is_emit_validator) {
+    emit_validator();
+  }
 }
 
 void CodeGenerator::emit_includes() {
   outstream << "#pragma once" << std::endl << std::endl;
-  if (emit_readers || emit_writers) {
+  if (is_emit_readers || is_emit_writers || is_emit_validator) {
     outstream << "#include <yaml-cpp/yaml.h>" << std::endl
               << "#include \"yavl-cpp/convert.h\"" << std::endl
               << std::endl;
@@ -45,23 +49,23 @@ void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &ty
   const bool is_enum = type_info.IsSequence();
   assert(is_map != is_enum);
   if (is_map) {
-    if (emit_declarations) {
+    if (is_emit_declarations) {
       emit_map_declaration(type_name, type_info);
     }
-    if (emit_readers) {
+    if (is_emit_readers) {
       emit_map_reader(type_name, type_info);
     }
-    if (emit_writers) {
+    if (is_emit_writers) {
       emit_map_writer(type_name, type_info);
     }
   } else {
-    if (emit_declarations) {
+    if (is_emit_declarations) {
       emit_enum_declaration(type_name, type_info);
     }
-    if (emit_readers) {
+    if (is_emit_readers) {
       emit_enum_reader(type_name, type_info);
     }
-    if (emit_writers) {
+    if (is_emit_writers) {
       emit_enum_writer(type_name, type_info);
     }
   }
@@ -146,9 +150,35 @@ void CodeGenerator::emit_enum_writer(const std::string &type_name, const YAML::N
       outstream << " else ";
     }
     first = false;
-    outstream << "if (input == " << choice << ") {\n    output << \"" << choice << "\";\n  }";
+    outstream << "if (input == " << choice << ") {" << std::endl
+              << "    output << \"" << choice << "\";" << std::endl
+              << "  }";
   }
-  outstream << "  return output;" << std::endl << "}" << std::endl << std::endl;
+  outstream << std::endl << "  return output;" << std::endl << "}" << std::endl << std::endl;
+}
+
+void CodeGenerator::emit_validator() {
+  YAML::Node types = spec["Types"];
+  outstream << "inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &node, const "
+               "std::string type_name) {"
+            << std::endl;
+  bool first = true;
+  for (const auto &type_def : types) {
+    const std::string type_name = type_def.first.as<std::string>();
+    if (first) {
+      outstream << "  ";
+    } else {
+      outstream << " else ";
+    }
+    first = false;
+    outstream << "if (type_name == \"" << type_name << "\") {" << std::endl
+              << "    return validate<" << type_name << ">(node);" << std::endl
+              << "  }";
+  }
+  outstream << std::endl
+            << "  return std::make_tuple(false, std::nullopt);" << std::endl
+            << "}" << std::endl
+            << std::endl;
 }
 
 } // namespace YAVL

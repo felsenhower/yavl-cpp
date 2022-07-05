@@ -19,7 +19,8 @@ class Compiler {
         {"--help",                 "Print this help."                                        },
         {"--no-emit-declarations", "Don't emit type declarations."                           },
         {"--no-emit-readers",      "Don't emit code to convert from YAML to generated types."},
-        {"--no-emit-writers",      "Don't emit code to convert from generated types to YAML."}
+        {"--no-emit-writers",      "Don't emit code to convert from generated types to YAML."},
+        {"--no-emit-validator",    "Don't emit code to validate a YAML document."            }
     };
 
     const std::string &app_name;
@@ -29,6 +30,7 @@ class Compiler {
     bool emit_declarations = true;
     bool emit_readers = true;
     bool emit_writers = true;
+    bool emit_validator = true;
     void parse_args();
     void parse_error(const std::string &error_message);
     void usage(std::ostream &outstream, const int exit_code = EXIT_SUCCESS);
@@ -60,6 +62,8 @@ void Compiler::parse_args() {
       emit_readers = false;
     } else if (option == "--no-emit-writers") {
       emit_writers = false;
+    } else if (option == "--no-emit-validator") {
+      emit_validator = false;
     }
   }
   try {
@@ -95,10 +99,11 @@ void Compiler::usage(std::ostream &outstream, const int exit_code) {
 }
 
 void Compiler::generate() {
-  YAVL::CodeGenerator::emit_header(spec, outfstream, emit_declarations, emit_readers, emit_writers);
+  YAVL::CodeGenerator::emit_header(spec, outfstream, emit_declarations, emit_readers, emit_writers, emit_validator);
 }
 
 int main(int argc, char **argv) {
   Compiler compiler(argc, argv);
   compiler.generate();
+  return EXIT_SUCCESS;
 }
