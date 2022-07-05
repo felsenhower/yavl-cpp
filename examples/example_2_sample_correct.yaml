@@ -1,7 +1,0 @@
-Header:
-  name: myname
-  version: 1.02
-  size: big
-  pieces:
-    a: [hello, world]
-    b: [100, 200]
