@@ -2,7 +2,7 @@
 
 `yavl-cpp` is a tool to auto-generate C/C++ code containing struct declarations, data bindings (methods to convert YAML to generated structs and vice versa) and validators from a specification written in a subset of YAML ("YAVL").
 
-In principle, `yavl-cpp` is similar to Google Protobuf: You specify data structures and generate C++ code from that.
+In principle, `yavl-cpp` is similar to Google Protobuf: You specify data structures in an abstract language and generate C++ code from that.
 Some key differences are:
 - Structure definitions in `yavl-cpp` are done via YAML documents.
 - `yavl-cpp` does not perform any kind of serialization.
@@ -33,11 +33,15 @@ Types:
         header: Header
 ```
 
+All types must be declared under the key `Types`.
+
+A type will be declared an `enum` if its corresponding YAML node is a sequence, and a `struct` if its YAML node is a map. 
+
 Running the YAVL compiler creates a header file.
 
 ```bash
-make
-./yavl-compiler --no-emit-readers --no-emit-writers --no-emit-validator examples/example_2_spec.yaml simple.h
+$ make
+$ ./yavl-compiler --no-emit-readers --no-emit-writers --no-emit-validator examples/example_2_spec.yaml simple.h
 ```
 
 The resulting header file `simple.h` is then
@@ -70,7 +74,7 @@ struct Top {
 By default, `yavl-compiler` creates declarations, readers, writers, and validators. Except for the declarations, this functionality depends on `yaml-cpp`.
 
 ```bash
-./yavl-compiler examples/example_2_spec.yaml simple.h
+$ ./yavl-compiler examples/example_2_spec.yaml simple.h
 ```
 
 The `simple.h` will then look like this:
@@ -198,7 +202,7 @@ int main() {
 When including this header into your C/C++ project, don't forget to add a `-I/path/to/yavl-cpp/include/` to your `CFLAGS` and to add `yaml-cpp`:
 
 ```bash
-g++ -Iinclude $(pkg-config --libs yaml-cpp) simple.cpp
+$ g++ -Iinclude $(pkg-config --libs yaml-cpp) simple.cpp
 ```
 
 If you wish to create header files that are valid C code, simply don't emit writers, readers, and validators, like in the example above, and don't use any types that aren't available in C (like `std::string`, `std::vector`, ...).
@@ -221,7 +225,7 @@ const auto &[ok, error_message] = validate(doc, "Top");
 You can use the script `validate.sh` to validate a YAML document against a YAVL specification:
 
 ```bash
-./validate.sh examples/example_1_sample_correct.yaml examples/example_1_spec.yaml Top
+$ ./validate.sh examples/example_1_sample_correct.yaml examples/example_1_spec.yaml Top
 ```
 
 > :warning: **Attention: This is potentially dangerous!** `validate.sh` will compile your spec to a header, use `g++` to create a dynamic library, and `yavl-validator` will execute binary code from this library without any checks. Never execute this script in a working environment you don't trust 100%! This is purely for demonstration purposes.
