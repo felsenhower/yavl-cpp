@@ -15,5 +15,5 @@ Types:
         version: std::string
         size: Size
         pieces: Pieces
-    Top:
+    TopType:
         header: Header
