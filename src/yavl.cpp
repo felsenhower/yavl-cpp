@@ -143,7 +143,10 @@ void CodeGenerator::emit_enum_reader(const std::string &type_name, const YAML::N
               << "    output = " << choice << ";" << std::endl
               << "  }";
   }
-  outstream << std::endl << "}" << std::endl;
+  outstream << " else {" << std::endl
+            << "    throw YAVL::BadConversionException(input, \"" << type_name << "\");" << std::endl
+            << "  }" << std::endl
+            << "}" << std::endl;
 }
 
 void CodeGenerator::emit_enum_writer(const std::string &type_name, const YAML::Node &type_info) {
