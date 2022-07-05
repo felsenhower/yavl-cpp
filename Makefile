@@ -1,4 +1,4 @@
-.PHONY: default all clean test tc yatc-client
+.PHONY: default all clean test yatc-client
 
 YAML_CPP_SUBMODULE_PATH := $(shell git config -f .gitmodules submodule.yaml-cpp.path)
 YAML_CPP_PATH := $(YAML_CPP_SUBMODULE_PATH)
@@ -7,7 +7,7 @@ YAML_CPP_SOURCES := $(addprefix $(YAML_CPP_PATH)/src/,binary.cpp convert.cpp dep
 BUILD_DIR := build
 
 YATC_SOURCES := src/yatc.cpp
-TC_SOURCES := src/tc.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
+YAVL_COMPILER_SOURCES := src/yavl-compiler.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
 YATC_CLIENT_SOURCES := src/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
 
 CXX = g++
@@ -15,21 +15,22 @@ INCLUDE_DIRS := $(YAML_CPP_PATH)/include include $(BUILD_DIR)
 CXXFLAGS = -O3 -std=c++20 -Wall -Werror -Wpedantic -Wno-restrict -Wno-dangling-pointer
 CXXFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
 
-default: tc $(YAML_CPP_SOURCES)
+default: yavl-compiler $(YAML_CPP_SOURCES)
 
 all: test
 
-test: tc $(YAML_CPP_SOURCES)
-	@echo -e '\n>> Testing tc...\n'
+test: yavl-compiler $(YAML_CPP_SOURCES)
+	@echo -e '\n>> Testing yavl-compiler...\n'
 	$(MAKE) $(BUILD_DIR)/top.h
 	$(MAKE) $(BUILD_DIR)/yatc-client
 	@echo -e '\n>> Testing yatc-client...\n'
 	$(BUILD_DIR)/yatc-client examples/example_1_sample_correct.yaml
 	@echo -e '\n>> All tests finished successfully.\n'
 
-tc: $(BUILD_DIR)/tc
+yavl-compiler: $(BUILD_DIR)/yavl-compiler
+	ln -sf $^ $@
 
-$(BUILD_DIR)/tc: $(addprefix $(BUILD_DIR)/,$(TC_SOURCES:.cpp=.o))
+$(BUILD_DIR)/yavl-compiler: $(addprefix $(BUILD_DIR)/,$(YAVL_COMPILER_SOURCES:.cpp=.o))
 	$(CXX) $^ $(CXXFLAGS) $(LDFLAGS) -o $@
 
 $(BUILD_DIR)/yatc-client: $(addprefix $(BUILD_DIR)/,$(YATC_CLIENT_SOURCES:.cpp=.o))
@@ -39,8 +40,8 @@ $(BUILD_DIR)/%.o: %.cpp
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c -o $@ $^
 
-$(BUILD_DIR)/top.h: $(BUILD_DIR)/tc
-	cd $(BUILD_DIR) ; ./tc $(shell realpath --relative-to=$(BUILD_DIR) .)/examples/example_1_spec.yaml top.h
+$(BUILD_DIR)/top.h: yavl-compiler
+	./yavl-compiler examples/example_1_spec.yaml $(BUILD_DIR)/top.h
 
 
 $(YAML_CPP_SUBMODULE_PATH)/%::
