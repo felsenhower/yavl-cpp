@@ -32,11 +32,12 @@ void CodeGenerator::emit_header() {
 }
 
 void CodeGenerator::emit_includes() {
-  outstream << "#pragma once" << std::endl
-            << std::endl
-            << "#include <yaml-cpp/yaml.h>" << std::endl
-            << "#include \"yavl-cpp/convert.h\"" << std::endl
-            << std::endl;
+  outstream << "#pragma once" << std::endl << std::endl;
+  if (emit_readers || emit_writers) {
+    outstream << "#include <yaml-cpp/yaml.h>" << std::endl
+              << "#include \"yavl-cpp/convert.h\"" << std::endl
+              << std::endl;
+  }
 }
 
 void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &type_info) {
