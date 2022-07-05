@@ -22,7 +22,7 @@ echo 'Compiling spec...'
 ./yavl-compiler "$spec_file" "$tmpdir"/spec.h
 
 echo 'Compiling shared object...'
-g++ -shared -fPIC "$libtemplate" -I"$tmpdir" -I"$incdir" -o "$shared_object" 
+g++ -std=c++20 -shared -fPIC "$libtemplate" -I"$tmpdir" -I"$incdir" -o "$shared_object" 
 
 echo 'Validating...'
 ./yavl-validator "$sample_file" "$shared_object" "$type_name"

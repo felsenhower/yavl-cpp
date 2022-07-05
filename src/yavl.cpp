@@ -89,7 +89,30 @@ void CodeGenerator::emit_map_declaration(const std::string &type_name, const YAM
 }
 
 void CodeGenerator::emit_map_reader(const std::string &type_name, const YAML::Node &type_info) {
-  outstream << "inline void operator>>(const YAML::Node &input, " << type_name << " &output) {" << std::endl;
+  outstream << "inline void operator>>(const YAML::Node &input, " << type_name << " &output) {" << std::endl
+            << "  const std::set<std::string> keys = {";
+  bool first = true;
+  for (const auto &field : type_info) {
+    if (!first) {
+      outstream << ",";
+    }
+    first = false;
+    const std::string field_name = field.first.as<std::string>();
+    outstream << std::endl << "    \"" << field_name << "\"";
+  }
+  outstream << std::endl
+            << "  };" << std::endl
+            << "  for (const auto &key : keys) {" << std::endl
+            << "    if (!input[key]) {" << std::endl
+            << "      throw YAVL::MissingKeyException(\"" << type_name << "\", key);" << std::endl
+            << "    }" << std::endl
+            << "  }" << std::endl
+            << "  for (const auto &it : input) {" << std::endl
+            << "    const std::string key = it.first.as<std::string>();" << std::endl
+            << "    if (!keys.contains(key)) {" << std::endl
+            << "      throw YAVL::SuperfluousKeyException(\"" << type_name << "\", key);" << std::endl
+            << "    }" << std::endl
+            << "  }" << std::endl;
   for (const auto &field : type_info) {
     const std::string field_name = field.first.as<std::string>();
     outstream << "  input[\"" << field_name << "\"] >> output." << field_name << ";" << std::endl;
@@ -121,8 +144,7 @@ void CodeGenerator::emit_enum_declaration(const std::string &type_name, const YA
       outstream << ",";
     }
     first = false;
-    outstream << std::endl;
-    outstream << "  " << choice.as<std::string>();
+    outstream << std::endl << "  " << choice.as<std::string>();
   }
   outstream << std::endl << "};" << std::endl << std::endl;
 }

@@ -2,6 +2,7 @@
 
 #include <map>
 #include <optional>
+#include <set>
 #include <tuple>
 #include <vector>
 #include <yaml-cpp/yaml.h>
@@ -44,10 +45,24 @@ namespace YAVL {
 
 class BadConversionException : public YAML::RepresentationException {
   public:
-    explicit BadConversionException(const YAML::Node &node, const std::string type_name)
+    explicit BadConversionException(const YAML::Node &node, const std::string &type_name)
         : YAML::RepresentationException(YAML::Mark::null_mark(),
-            std::string("Bad Conversion from value \"") + node.as<std::string>() + "\" to type \"" + type_name + "\"") {
+            std::string("Bad conversion from value \"") + node.as<std::string>() + "\" to type \"" + type_name + "\"") {
     }
+};
+
+class MissingKeyException : public YAML::RepresentationException {
+  public:
+    explicit MissingKeyException(const std::string &type_name, const std::string &key_name)
+        : YAML::RepresentationException(YAML::Mark::null_mark(),
+            std::string("Missing key \"") + key_name + "\" during conversion to type \"" + type_name + "\"") {}
+};
+
+class SuperfluousKeyException : public YAML::RepresentationException {
+  public:
+    explicit SuperfluousKeyException(const std::string &type_name, const std::string &key_name)
+        : YAML::RepresentationException(YAML::Mark::null_mark(),
+            std::string("Superfluous key \"") + key_name + "\" during conversion to type \"" + type_name + "\"") {}
 };
 
 } // namespace YAVL
