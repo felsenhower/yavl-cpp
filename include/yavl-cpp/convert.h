@@ -19,6 +19,9 @@ inline void operator>>(const YAML::Node &node, std::vector<T> &obj) {
   }
 }
 
+// template<typename KT,VT>
+// inline void operator>>(const YAML::Node &node, std::map<
+
 template<typename T>
 inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &node) {
   try {

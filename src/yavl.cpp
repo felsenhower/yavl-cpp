@@ -42,6 +42,13 @@ void CodeGenerator::emit_includes() {
               << "#include \"yavl-cpp/convert.h\"" << std::endl
               << std::endl;
   }
+  YAML::Node extra_includes = spec["ExtraIncludes"];
+  if (extra_includes.IsSequence()) {
+    for (const auto &header : extra_includes) {
+      outstream << "#include " << header.as<std::string>() << std::endl;
+    }
+    outstream << std::endl;
+  }
 }
 
 void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &type_info) {
