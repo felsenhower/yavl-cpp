@@ -2,7 +2,6 @@
 
 #include <ostream>
 #include <string>
-// #include <utility>
 #include <yaml-cpp/yaml.h>
 
 namespace YAVL {

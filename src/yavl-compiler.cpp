@@ -7,7 +7,7 @@
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
-#include "yavl-cpp/yatc.h"
+#include "yavl-cpp/yavl.h"
 
 class Compiler {
   public:

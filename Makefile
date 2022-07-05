@@ -1,8 +1,8 @@
 .PHONY: default all clean
 
 BUILD_DIR := build
-COMPILER_SOURCES := src/yavl-compiler.cpp src/yatc.cpp
-VALIDATOR_SOURCES := src/yavl-validator.cpp src/yatc.cpp
+COMPILER_SOURCES := src/yavl-compiler.cpp src/yavl.cpp
+VALIDATOR_SOURCES := src/yavl-validator.cpp src/yavl.cpp
 
 CXX = g++
 CXXFLAGS = -O3 -std=c++20 -Wall -Werror -Wpedantic -I./include
