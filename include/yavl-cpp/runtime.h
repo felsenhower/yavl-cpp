@@ -1,10 +1,12 @@
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <map>
 #include <optional>
 #include <set>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
@@ -31,6 +33,13 @@ inline void operator>>(const YAML::Node &node, std::map<KT, VT> &obj) {
     it.second >> val;
     obj[key] = val;
   }
+}
+
+template<typename KT, typename VT>
+inline void operator>>(const YAML::Node &node, std::unordered_map<KT, VT> &obj) {
+  std::map<KT, VT> ordered_map;
+  node >> ordered_map;
+  std::copy(ordered_map.begin(), ordered_map.end(), std::back_inserter(obj));
 }
 
 template<typename T>
