@@ -1,4 +1,4 @@
-.PHONY: default all clean test checker tc yatc-client
+.PHONY: default all clean test tc yatc-client
 
 YAML_CPP_SUBMODULE_PATH := $(shell git config -f .gitmodules submodule.yaml-cpp.path)
 YAML_CPP_PATH := $(YAML_CPP_SUBMODULE_PATH)
@@ -6,9 +6,7 @@ YAML_CPP_SOURCES := $(addprefix $(YAML_CPP_PATH)/src/,binary.cpp convert.cpp dep
 
 BUILD_DIR := build
 
-YAVL_SOURCES := src/yavl.cpp
 YATC_SOURCES := src/yatc.cpp
-CHECKER_SOURCES := examples/apps/checker.cpp $(YAVL_SOURCES) $(YAML_CPP_SOURCES)
 TC_SOURCES := examples/apps/tc.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
 YATC_CLIENT_SOURCES := examples/apps/yatc-client.cpp $(YATC_SOURCES) $(YAML_CPP_SOURCES)
 
@@ -17,24 +15,17 @@ INCLUDE_DIRS := $(YAML_CPP_PATH)/include include $(BUILD_DIR)
 CXXFLAGS = -O3 -std=c++20 -Wall -Werror -Wpedantic -Wno-restrict -Wno-dangling-pointer
 CXXFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
 
-default: checker tc $(YAML_CPP_SOURCES)
+default: tc $(YAML_CPP_SOURCES)
 
 all: test
 
-test: checker tc $(YAML_CPP_SOURCES)
-	@echo -e '\n>> Testing checker...\n'
-	! $(BUILD_DIR)/checker examples/specs/gr3.yaml examples/specs/y0.gr3.yaml
+test: tc $(YAML_CPP_SOURCES)
 	@echo -e '\n>> Testing tc...\n'
 	$(MAKE) $(BUILD_DIR)/top.h
 	$(MAKE) $(BUILD_DIR)/yatc-client
 	@echo -e '\n>> Testing yatc-client...\n'
 	$(BUILD_DIR)/yatc-client examples/specs/y0.gr4.yaml
 	@echo -e '\n>> All tests finished successfully.\n'
-
-checker: $(BUILD_DIR)/checker
-
-$(BUILD_DIR)/checker: $(addprefix $(BUILD_DIR)/,$(CHECKER_SOURCES:.cpp=.o))
-	$(CXX) $^ $(CXXFLAGS) $(LDFLAGS) -o $@
 
 tc: $(BUILD_DIR)/tc
 
