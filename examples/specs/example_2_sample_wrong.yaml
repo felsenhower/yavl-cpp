@@ -1,5 +1,4 @@
-# to be checked against gr3.yaml
-HEADER:
+Header:
   name: myname
   version: 1.02
   size: xbig

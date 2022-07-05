@@ -24,7 +24,7 @@ test: tc $(YAML_CPP_SOURCES)
 	$(MAKE) $(BUILD_DIR)/top.h
 	$(MAKE) $(BUILD_DIR)/yatc-client
 	@echo -e '\n>> Testing yatc-client...\n'
-	$(BUILD_DIR)/yatc-client examples/specs/y0.gr4.yaml
+	$(BUILD_DIR)/yatc-client examples/specs/example_1_sample_correct.yaml
 	@echo -e '\n>> All tests finished successfully.\n'
 
 tc: $(BUILD_DIR)/tc
@@ -40,7 +40,7 @@ $(BUILD_DIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $^
 
 $(BUILD_DIR)/top.h: $(BUILD_DIR)/tc
-	cd $(BUILD_DIR) ; ./tc $(shell realpath --relative-to=$(BUILD_DIR) .)/examples/specs/gr4.yaml top
+	cd $(BUILD_DIR) ; ./tc $(shell realpath --relative-to=$(BUILD_DIR) .)/examples/specs/example_1_spec.yaml top.h
 
 
 $(YAML_CPP_SUBMODULE_PATH)/%::

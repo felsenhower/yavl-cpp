@@ -6,284 +6,144 @@
 
 namespace YAVL {
 
-std::string to_lower_copy(const std::string &s) {
-  std::string result = s;
-  std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c){ return std::tolower(c); });
-  return result;
+void CodeGenerator::emit_header(const YAML::Node &spec, std::ostream &outstream, const bool emit_declarations,
+    const bool emit_readers, const bool emit_writers) {
+  CodeGenerator generator(spec, outstream, emit_declarations, emit_readers, emit_writers);
+  generator.emit_header();
 }
 
-DataNodeDefinition DataBinderGen::make_map_type(const YAML::Node &mapNode, std::string name) {
-  DataNodeDefinition rsl;
-  rsl.kind_of_node = DataKind::map_kind;
-  rsl.type = to_lower_copy(name);
-  rsl.type[0] = toupper(rsl.type[0]);
-  rsl.name = name;
+CodeGenerator::CodeGenerator(const YAML::Node &spec, std::ostream &outstream, const bool emit_declarations,
+    const bool emit_readers, const bool emit_writers)
+    : spec(spec),
+      outstream(outstream),
+      emit_declarations(emit_declarations),
+      emit_readers(emit_readers),
+      emit_writers(emit_writers) {}
 
-  for (const auto &it : mapNode) {
-    std::string key = it.first.as<std::string>();
-    const YAML::Node &valueNode = it.second;
-    DataNodeDefinition subrsl = make_types(valueNode, key);
-    DataNodeDefinition *e = new DataNodeDefinition(subrsl);
-    rsl.elems.push_back(e);
-  }
-  return rsl;
-}
-
-DataNodeDefinition DataBinderGen::make_scalar_type(const YAML::Node &doc, std::string name) {
-  assert(doc.IsSequence());
-
-  const YAML::Node &typespec_map = doc[0];
-  //assert( num_keys(typespec_map) == 1);
-
-  std::string type = typespec_map.begin()->first.as<std::string>();
-  const YAML::Node &type_specifics = typespec_map.begin()->second;
-
-  DataNodeDefinition elem;
-
-  elem.name = name;
-
-  if (type == "string") {
-    elem.type = "std::string";
-    elem.kind_of_node = DataKind::scalar_kind;
-  } else if (type == "uint64_t") {
-    elem.type = "uint64_t";
-    elem.kind_of_node = DataKind::scalar_kind;
-  } else if (type == "int64_t") {
-    elem.type = "int64_t";
-    elem.kind_of_node = DataKind::scalar_kind;
-  } else if (type == "int") {
-    elem.type = "int";
-    elem.kind_of_node = DataKind::scalar_kind;
-  } else if (type == "uint") {
-    elem.type = "unsigned int";
-    elem.kind_of_node = DataKind::scalar_kind;
-  } else if (type == "enum") {
-    elem.enum_def.name = to_lower_copy(elem.name);
-    elem.enum_def.name[0] = toupper(elem.enum_def.name[0]);
-    std::transform(type_specifics.begin(), type_specifics.end(), std::back_inserter(elem.enum_def.enum_values),
-        [](const auto &it) {return it.template as<std::string>();});
-    elem.kind_of_node = DataKind::enum_kind;
-    elem.type = elem.enum_def.name;
-  }
-  return elem;
-}
-
-DataNodeDefinition DataBinderGen::make_list_type(const YAML::Node &doc, std::string name) {
-  DataNodeDefinition elem;
-  elem.name = name;
-  elem.kind_of_node = DataKind::list_kind;
-
-  //assert(num_keys(doc) == 1);
-
-  std::string vec_kind_of_node = to_lower_copy(name);
-  vec_kind_of_node[0] = toupper(vec_kind_of_node[0]);
-  if (*(vec_kind_of_node.end() - 1) == 's') {
-    vec_kind_of_node.erase(vec_kind_of_node.end() - 1);
-  }
-  DataNodeDefinition subrsl = make_types(doc, vec_kind_of_node);
-  DataNodeDefinition *e = new DataNodeDefinition(subrsl);
-  elem.listelem_def = e;
-
-  elem.type = std::string("std::vector<") + elem.listelem_def->type + std::string(" >");
-
-  return elem;
-}
-
-DataNodeDefinition DataBinderGen::make_types(const YAML::Node &doc, std::string name) {
-  if (doc["map"]) {
-    return make_map_type(doc["map"], name);
-  } else if (doc["list"]) {
-    return make_list_type(doc["list"], name);
-  }
-  return make_scalar_type(doc, name);
-}
-
-void DataBinderGen::emit_enum_declaration(const DataNodeDefinition &elem) {
-  os << "enum " << elem.enum_def.name << " { ";
-  std::vector<std::string>::const_iterator i = elem.enum_def.enum_values.begin();
-  for (; i != elem.enum_def.enum_values.end(); ++i) {
-    if (i != elem.enum_def.enum_values.begin()) {
-      os << ", ";
-    }
-    os << *i;
-  }
-  os << " };" << std::endl;
-}
-
-void DataBinderGen::emit_declarations(const DataNodeDefinition &elem) {
-  switch (elem.kind_of_node) {
-    case DataKind::enum_kind:
-      emit_enum_declaration(elem);
-      break;
-
-    case DataKind::list_kind:
-      if (elem.listelem_def->kind_of_node != DataKind::scalar_kind) {
-        emit_declarations(*elem.listelem_def);
-      }
-      break;
-
-    case DataKind::scalar_kind:
-      break;
-
-    case DataKind::map_kind:
-      std::vector<DataNodeDefinition *>::const_iterator i = elem.elems.begin();
-      // pass one: emit what I depend on
-      for (; i != elem.elems.end(); ++i) {
-        if (((*i)->kind_of_node == DataKind::enum_kind)) {
-          emit_enum_declaration(**i);
-        } else if ((*i)->kind_of_node == DataKind::map_kind) {
-          emit_declarations(**i);
-        } else if ((*i)->kind_of_node == DataKind::list_kind) {
-          if ((*i)->listelem_def->kind_of_node != DataKind::scalar_kind) {
-            emit_declarations(*((*i)->listelem_def));
-          }
-        }
-      }
-      // pass two: emit myself
-      os << "struct " << elem.type << " {" << std::endl;
-      i = elem.elems.begin();
-      for (; i != elem.elems.end(); ++i) {
-        const DataNodeDefinition &e = **i;
-        os << "  " << e.type << " " << e.name << ";" << std::endl;
-      }
-      os << "};" << std::endl;
-      break;
-  }
-}
-
-void DataBinderGen::emit_includes() {
-  os << "#pragma once" << std::endl;
-  os << "#include <yaml-cpp/yaml.h>" << std::endl;
-  os << "#include \"yavl-cpp/yatc.h\"" << std::endl;
-}
-
-void DataBinderGen::emit_enum_reader(const DataNodeDefinition &elem) {
-  os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
-  os << "  std::string tmp; node >> tmp;" << std::endl;
-  std::vector<std::string>::const_iterator i = elem.enum_def.enum_values.begin();
-  for (; i != elem.enum_def.enum_values.end(); ++i) {
-    os << "  if (tmp == \"" << *i << "\") obj = " << *i << ';' << std::endl;
-  }
-  os << "}" << std::endl;
-}
-
-void DataBinderGen::emit_reader(const DataNodeDefinition &elem) {
-  switch (elem.kind_of_node) {
-    case DataKind::enum_kind:
-      emit_enum_reader(elem);
-      os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
-      os << "  node[\"" << elem.name << "\"] >> obj." << elem.name << ";" << std::endl;
-      os << "}" << std::endl;
-      break;
-
-    case DataKind::list_kind:
-      if (elem.listelem_def->kind_of_node != DataKind::scalar_kind) {
-        emit_reader(*elem.listelem_def);
-      }
-      break;
-
-    case DataKind::scalar_kind:
-      os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
-      os << "  node[\"" << elem.name << "\"] >> obj." << elem.name << ";" << std::endl;
-      os << "}" << std::endl;
-      break;
-
-    case DataKind::map_kind:
-      std::vector<DataNodeDefinition *>::const_iterator i = elem.elems.begin();
-      // pass one: emit what I depend on
-      for (; i != elem.elems.end(); ++i) {
-        if (((*i)->kind_of_node == DataKind::enum_kind)) {
-          emit_enum_reader(**i);
-        } else if ((*i)->kind_of_node == DataKind::map_kind) {
-          emit_reader(**i);
-        } else if ((*i)->kind_of_node == DataKind::list_kind) {
-          if ((*i)->listelem_def->kind_of_node != DataKind::scalar_kind) {
-            emit_reader(*((*i)->listelem_def));
-          }
-        }
-      }
-      // pass two: emit myself
-      os << "inline void operator >>(const YAML::Node& node, " << elem.type << " &obj) {" << std::endl;
-      i = elem.elems.begin();
-      for (; i != elem.elems.end(); ++i) {
-        const DataNodeDefinition &e = **i;
-        os << "  node[\"" << e.name << "\"] >> obj." << e.name << ";" << std::endl;
-      }
-      os << "}" << std::endl;
-      break;
-  }
-}
-
-void DataBinderGen::emit_enum_dumper(const DataNodeDefinition &elem) {
-  os << "inline YAML::Emitter& operator <<(YAML::Emitter& out, const " << elem.type << " &obj) {" << std::endl;
-  std::vector<std::string>::const_iterator i = elem.enum_def.enum_values.begin();
-  for (; i != elem.enum_def.enum_values.end(); ++i) {
-    os << "  if (obj == " << *i << ") out << \"" << *i << "\";" << std::endl;
-  }
-  os << "  return out;" << std::endl;
-  os << "}" << std::endl;
-}
-
-void DataBinderGen::emit_dumper(const DataNodeDefinition &elem) {
-  switch (elem.kind_of_node) {
-    case DataKind::enum_kind:
-      emit_enum_dumper(elem);
-      os << "inline YAML::Emitter& operator <<(YAML::Emitter& out, const " << elem.type << " &obj) {" << std::endl;
-      os << "  out << obj." << elem.name << ";" << std::endl;
-      os << "  return out;" << std::endl;
-      os << "}" << std::endl;
-      break;
-
-    case DataKind::list_kind:
-      if (elem.listelem_def->kind_of_node != DataKind::scalar_kind) {
-        emit_dumper(*elem.listelem_def);
-      }
-      break;
-
-    case DataKind::scalar_kind:
-      break;
-
-    case DataKind::map_kind:
-      std::vector<DataNodeDefinition *>::const_iterator i = elem.elems.begin();
-      // pass one: emit what I depend on
-      for (; i != elem.elems.end(); ++i) {
-        if (((*i)->kind_of_node == DataKind::enum_kind)) {
-          emit_enum_dumper(**i);
-        } else if ((*i)->kind_of_node == DataKind::map_kind) {
-          emit_dumper(**i);
-        } else if ((*i)->kind_of_node == DataKind::list_kind) {
-          if ((*i)->listelem_def->kind_of_node != DataKind::scalar_kind) {
-            emit_dumper(*((*i)->listelem_def));
-          }
-        }
-      }
-      // pass two: emit myself
-      os << "inline YAML::Emitter& operator <<(YAML::Emitter& out, const " << elem.type << " &obj) {" << std::endl;
-      os << "  out << YAML::BeginMap;" << std::endl;
-      i = elem.elems.begin();
-      for (; i != elem.elems.end(); ++i) {
-        const DataNodeDefinition &e = **i;
-        os << "  out << YAML::Key << \"" << e.name << "\";" << std::endl;
-        os << "  out << YAML::Value << obj." << e.name << ";" << std::endl;
-      }
-      os << "  out << YAML::EndMap;" << std::endl;
-      os << "  return out;" << std::endl;
-      os << "}" << std::endl;
-      break;
-  }
-}
-
-void DataBinderGen::emit_header() {
+void CodeGenerator::emit_header() {
+  YAML::Node types = spec["Types"];
+  assert(types.IsMap());
   emit_includes();
-  emit_declarations(root_data_defn);
-  emit_reader(root_data_defn);
-  emit_dumper(root_data_defn);
+  for (const auto &type_def : types) {
+    const std::string type_name = type_def.first.as<std::string>();
+    const YAML::Node type_info = type_def.second;
+    emit_type(type_name, type_info);
+  }
 }
 
-void DataBinderGen::emit_header(const YAML::Node &gr, std::string topname, std::ostream &os) {
-  DataBinderGen emitter(gr, topname, os);
-  emitter.emit_header();
+void CodeGenerator::emit_includes() {
+  outstream << "#pragma once" << std::endl;
+  outstream << "#include <yaml-cpp/yaml.h>" << std::endl;
+  outstream << "#include \"yavl-cpp/convert.h\"" << std::endl;
 }
-  
+
+void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &type_info) {
+  const bool is_map = type_info.IsMap();
+  const bool is_enum = type_info.IsSequence();
+  assert(is_map != is_enum);
+  if (is_map) {
+    if (emit_declarations) {
+      emit_map_declaration(type_name, type_info);
+    }
+    if (emit_readers) {
+      emit_map_reader(type_name, type_info);
+    }
+    if (emit_writers) {
+      emit_map_writer(type_name, type_info);
+    }
+  } else {
+    if (emit_declarations) {
+      emit_enum_declaration(type_name, type_info);
+    }
+    if (emit_readers) {
+      emit_enum_reader(type_name, type_info);
+    }
+    if (emit_writers) {
+      emit_enum_writer(type_name, type_info);
+    }
+  }
+}
+
+void CodeGenerator::emit_map_declaration(const std::string &type_name, const YAML::Node &type_info) {
+  outstream << "struct " << type_name << " {\n";
+  for (const auto &field : type_info) {
+    const std::string field_name = field.first.as<std::string>();
+    const std::string field_type = field.second.as<std::string>();
+    outstream << "  " << field_type << " " << field_name << ";\n";
+  }
+  outstream << "};\n";
+}
+
+void CodeGenerator::emit_map_reader(const std::string &type_name, const YAML::Node &type_info) {
+  outstream << "inline void operator>>(const YAML::Node& input, " << type_name << " &output) {" << std::endl;
+  for (const auto &field : type_info) {
+    const std::string field_name = field.first.as<std::string>();
+    outstream << "  input[\"" << field_name << "\"] >> output." << field_name << ";" << std::endl;
+  }
+  outstream << "}\n";
+}
+
+void CodeGenerator::emit_map_writer(const std::string &type_name, const YAML::Node &type_info) {
+  outstream << "inline YAML::Emitter& operator<<(YAML::Emitter& output, const " << type_name << " &input) {"
+            << std::endl;
+  outstream << "  output << YAML::BeginMap;" << std::endl;
+  for (const auto &field : type_info) {
+    const std::string field_name = field.first.as<std::string>();
+    outstream << "  output << YAML::Key << \"" << field_name << "\";" << std::endl;
+    outstream << "  output << YAML::Value << input." << field_name << ";" << std::endl;
+  }
+  outstream << "  output << YAML::EndMap;" << std::endl;
+  outstream << "  return output;\n";
+  outstream << "}" << std::endl;
+}
+
+void CodeGenerator::emit_enum_declaration(const std::string &type_name, const YAML::Node &type_info) {
+  outstream << "enum " << type_name << " {";
+  bool first = true;
+  for (const auto &choice : type_info) {
+    assert(choice.IsScalar());
+    if (!first) {
+      outstream << ",";
+    }
+    first = false;
+    outstream << "\n";
+    outstream << "  " << choice.as<std::string>();
+  }
+  outstream << "\n};"
+            << "\n";
+}
+
+void CodeGenerator::emit_enum_reader(const std::string &type_name, const YAML::Node &type_info) {
+  outstream << "inline void operator>>(const YAML::Node& input, " << type_name << " &output) {" << std::endl;
+  outstream << "  std::string tmp;\n  input >> tmp;" << std::endl;
+  bool first = true;
+  for (const auto &choice : type_info) {
+    if (first) {
+      outstream << "  ";
+    } else {
+      outstream << " else ";
+    }
+    first = false;
+    outstream << "if (tmp == \"" << choice << "\") {\n    output = " << choice << ";\n  }";
+  }
+  outstream << "\n}" << std::endl;
+}
+
+void CodeGenerator::emit_enum_writer(const std::string &type_name, const YAML::Node &type_info) {
+  outstream << "inline YAML::Emitter& operator<<(YAML::Emitter& output, const " << type_name << " &input) {"
+            << std::endl;
+  bool first = true;
+  for (const auto &choice : type_info) {
+    if (first) {
+      outstream << "  ";
+    } else {
+      outstream << " else ";
+    }
+    first = false;
+    outstream << "if (input == " << choice << ") {\n    output << \"" << choice << "\";\n  }";
+  }
+  outstream << "  return output;\n";
+  outstream << "}\n" << std::endl;
+}
 
 } // namespace YAVL

@@ -1,0 +1,17 @@
+Types:
+    Size: 
+        - big
+        - small
+    A:
+        a1: std::string
+        a2: std::string
+    Pieces:
+        a: std::vector<A>
+        b: std::vector<int>
+    Header:
+        name: std::string
+        version: std::string
+        size: Size
+        pieces: Pieces
+    Top:
+        header: Header
