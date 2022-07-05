@@ -7,7 +7,7 @@
 #include <tuple>
 #include <yaml-cpp/yaml.h>
 
-#include "yavl-cpp/convert.h"
+#include "yavl-cpp/runtime.h"
 
 using YAVL::SymbolTable;
 typedef SymbolTable (*get_symbols_ptr)();

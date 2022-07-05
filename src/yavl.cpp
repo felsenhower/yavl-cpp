@@ -39,7 +39,7 @@ void CodeGenerator::emit_includes() {
   outstream << "#pragma once" << std::endl << std::endl;
   if (is_emit_readers || is_emit_writers || is_emit_validator) {
     outstream << "#include <yaml-cpp/yaml.h>" << std::endl
-              << "#include \"yavl-cpp/convert.h\"" << std::endl
+              << "#include \"yavl-cpp/runtime.h\"" << std::endl
               << std::endl;
   }
   YAML::Node extra_includes = spec["ExtraIncludes"];
