@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   const std::string doc_filename = argv[1];
-  
+
   Top top;
   try {
     YAML::Node doc = YAML::LoadFile(doc_filename);

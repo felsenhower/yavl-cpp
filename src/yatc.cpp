@@ -32,9 +32,11 @@ void CodeGenerator::emit_header() {
 }
 
 void CodeGenerator::emit_includes() {
-  outstream << "#pragma once" << std::endl;
-  outstream << "#include <yaml-cpp/yaml.h>" << std::endl;
-  outstream << "#include \"yavl-cpp/convert.h\"" << std::endl;
+  outstream << "#pragma once" << std::endl
+            << std::endl
+            << "#include <yaml-cpp/yaml.h>" << std::endl
+            << "#include \"yavl-cpp/convert.h\"" << std::endl
+            << std::endl;
 }
 
 void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &type_info) {
@@ -65,36 +67,37 @@ void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &ty
 }
 
 void CodeGenerator::emit_map_declaration(const std::string &type_name, const YAML::Node &type_info) {
-  outstream << "struct " << type_name << " {\n";
+  outstream << "struct " << type_name << " {" << std::endl;
   for (const auto &field : type_info) {
     const std::string field_name = field.first.as<std::string>();
     const std::string field_type = field.second.as<std::string>();
-    outstream << "  " << field_type << " " << field_name << ";\n";
+    outstream << "  " << field_type << " " << field_name << ";" << std::endl;
   }
-  outstream << "};\n";
+  outstream << "};" << std::endl << std::endl;
 }
 
 void CodeGenerator::emit_map_reader(const std::string &type_name, const YAML::Node &type_info) {
-  outstream << "inline void operator>>(const YAML::Node& input, " << type_name << " &output) {" << std::endl;
+  outstream << "inline void operator>>(const YAML::Node &input, " << type_name << " &output) {" << std::endl;
   for (const auto &field : type_info) {
     const std::string field_name = field.first.as<std::string>();
     outstream << "  input[\"" << field_name << "\"] >> output." << field_name << ";" << std::endl;
   }
-  outstream << "}\n";
+  outstream << "}" << std::endl << std::endl;
 }
 
 void CodeGenerator::emit_map_writer(const std::string &type_name, const YAML::Node &type_info) {
-  outstream << "inline YAML::Emitter& operator<<(YAML::Emitter& output, const " << type_name << " &input) {"
-            << std::endl;
-  outstream << "  output << YAML::BeginMap;" << std::endl;
+  outstream << "inline YAML::Emitter& operator<<(YAML::Emitter &output, const " << type_name << " &input) {"
+            << std::endl
+            << "  output << YAML::BeginMap;" << std::endl;
   for (const auto &field : type_info) {
     const std::string field_name = field.first.as<std::string>();
-    outstream << "  output << YAML::Key << \"" << field_name << "\";" << std::endl;
-    outstream << "  output << YAML::Value << input." << field_name << ";" << std::endl;
+    outstream << "  output << YAML::Key << \"" << field_name << "\";" << std::endl
+              << "  output << YAML::Value << input." << field_name << ";" << std::endl;
   }
-  outstream << "  output << YAML::EndMap;" << std::endl;
-  outstream << "  return output;\n";
-  outstream << "}" << std::endl;
+  outstream << "  output << YAML::EndMap;" << std::endl
+            << "  return output;" << std::endl
+            << "}" << std::endl
+            << std::endl;
 }
 
 void CodeGenerator::emit_enum_declaration(const std::string &type_name, const YAML::Node &type_info) {
@@ -106,16 +109,16 @@ void CodeGenerator::emit_enum_declaration(const std::string &type_name, const YA
       outstream << ",";
     }
     first = false;
-    outstream << "\n";
+    outstream << std::endl;
     outstream << "  " << choice.as<std::string>();
   }
-  outstream << "\n};"
-            << "\n";
+  outstream << std::endl << "};" << std::endl << std::endl;
 }
 
 void CodeGenerator::emit_enum_reader(const std::string &type_name, const YAML::Node &type_info) {
-  outstream << "inline void operator>>(const YAML::Node& input, " << type_name << " &output) {" << std::endl;
-  outstream << "  std::string tmp;\n  input >> tmp;" << std::endl;
+  outstream << "inline void operator>>(const YAML::Node &input, " << type_name << " &output) {" << std::endl
+            << "  std::string tmp;" << std::endl
+            << "  input >> tmp;" << std::endl;
   bool first = true;
   for (const auto &choice : type_info) {
     if (first) {
@@ -124,13 +127,15 @@ void CodeGenerator::emit_enum_reader(const std::string &type_name, const YAML::N
       outstream << " else ";
     }
     first = false;
-    outstream << "if (tmp == \"" << choice << "\") {\n    output = " << choice << ";\n  }";
+    outstream << "if (tmp == \"" << choice << "\") {" << std::endl
+              << "    output = " << choice << ";" << std::endl
+              << "  }";
   }
-  outstream << "\n}" << std::endl;
+  outstream << std::endl << "}" << std::endl;
 }
 
 void CodeGenerator::emit_enum_writer(const std::string &type_name, const YAML::Node &type_info) {
-  outstream << "inline YAML::Emitter& operator<<(YAML::Emitter& output, const " << type_name << " &input) {"
+  outstream << "inline YAML::Emitter& operator<<(YAML::Emitter &output, const " << type_name << " &input) {"
             << std::endl;
   bool first = true;
   for (const auto &choice : type_info) {
@@ -142,8 +147,7 @@ void CodeGenerator::emit_enum_writer(const std::string &type_name, const YAML::N
     first = false;
     outstream << "if (input == " << choice << ") {\n    output << \"" << choice << "\";\n  }";
   }
-  outstream << "  return output;\n";
-  outstream << "}\n" << std::endl;
+  outstream << "  return output;" << std::endl << "}" << std::endl << std::endl;
 }
 
 } // namespace YAVL
