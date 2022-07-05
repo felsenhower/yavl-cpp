@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <map>
 #include <optional>
 #include <set>
@@ -42,6 +43,16 @@ inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &n
 }
 
 namespace YAVL {
+
+using validation_result = std::tuple<bool, std::optional<std::string>>;
+using validation_function = std::function<validation_result(const YAML::Node &node, const std::string type_name)>;
+using type_list = std::vector<std::string>;
+using get_types_function = std::function<type_list()>;
+
+struct SymbolTable {
+    validation_function validate_simple;
+    get_types_function get_types;
+};
 
 class BadConversionException : public YAML::RepresentationException {
   public:

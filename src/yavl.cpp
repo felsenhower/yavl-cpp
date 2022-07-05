@@ -191,10 +191,25 @@ void CodeGenerator::emit_enum_writer(const std::string &type_name, const YAML::N
 
 void CodeGenerator::emit_validator() {
   YAML::Node types = spec["Types"];
-  outstream << "inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &node, const "
+
+  outstream << "inline std::vector<std::string> get_types() {" << std::endl << "  return {";
+  bool first = true;
+  for (const auto &type_def : types) {
+    const std::string type_name = type_def.first.as<std::string>();
+    if (!first) {
+      outstream << ",";
+    }
+    first = false;
+    outstream << std::endl << "    \"" << type_name << "\"";
+  }
+  outstream << std::endl
+            << "  };" << std::endl
+            << "}" << std::endl
+            << std::endl
+            << "inline std::tuple<bool, std::optional<std::string>> validate_simple(const YAML::Node &node, const "
                "std::string type_name) {"
             << std::endl;
-  bool first = true;
+  first = true;
   for (const auto &type_def : types) {
     const std::string type_name = type_def.first.as<std::string>();
     if (first) {

@@ -7,8 +7,10 @@
 #include <tuple>
 #include <yaml-cpp/yaml.h>
 
-typedef std::tuple<bool, std::optional<std::string>> validation_result;
-typedef validation_result (*validation_function)(const YAML::Node &node, const std::string type_name);
+#include "yavl-cpp/convert.h"
+
+using YAVL::SymbolTable;
+typedef SymbolTable (*get_symbols_ptr)();
 
 void usage(const std::string &app_name) {
   std::cerr << "Usage: " << app_name << " DOC LIB TYPENAME" << std::endl;
@@ -34,14 +36,20 @@ int main(int argc, char **argv) {
     std::cerr << "Error: \"" << dlerror() << "\"" << std::endl;
     return EXIT_FAILURE;
   }
-  validation_function validate = (validation_function)dlsym(handle.get(), "validate_simple");
+  get_symbols_ptr get_symbols = (get_symbols_ptr)dlsym(handle.get(), "get_symbols");
   const char *error = dlerror();
-  if (!validate || error) {
+  if (!get_symbols || error) {
     std::cerr << "Error: \"" << error << "\"" << std::endl;
     return EXIT_FAILURE;
   }
+  SymbolTable symbols = get_symbols();
   const std::string type_name = argv[3];
-  const auto &[ok, error_message] = validate(doc, type_name);
+  std::vector<std::string> types = symbols.get_types();
+  if (std::find(types.begin(), types.end(), type_name) == types.end()) {
+    std::cerr << "Invalid type: \"" << type_name << "\"" << std::endl;
+    return EXIT_FAILURE;
+  }
+  const auto &[ok, error_message] = symbols.validate_simple(doc, type_name);
   if (ok) {
     std::cout << "Validation successful!" << std::endl;
   } else {
