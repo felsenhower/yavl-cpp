@@ -1,4 +1,4 @@
-.PHONY: default all clean
+.PHONY: default all clean test
 
 BUILD_DIR := build
 COMPILER_SOURCES := src/yavl-compiler.cpp src/yavl.cpp
@@ -11,6 +11,9 @@ LDFLAGS += $(shell pkg-config --libs yaml-cpp)
 default: yavl-compiler yavl-validator
 
 all: test
+
+test: default
+	./test.sh
 
 yavl-compiler: $(BUILD_DIR)/yavl-compiler
 	ln -sf $^ $@
