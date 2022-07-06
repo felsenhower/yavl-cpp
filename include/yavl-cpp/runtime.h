@@ -165,6 +165,34 @@ inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::unordered_map
   return output << ordered_map;
 }
 
+template<std::size_t I = 0, typename... Tp>
+inline typename std::enable_if<I == sizeof...(Tp), void>::type tuple_unpack(
+    std::tuple<Tp...> &t, std::vector<YAML::Node> vec) {
+  // Nothing
+}
+
+template<std::size_t I = 0, typename... Tp>
+    inline typename std::enable_if
+    < I<sizeof...(Tp), void>::type tuple_unpack(std::tuple<Tp...> &t, std::vector<YAML::Node> vec) {
+  using T = std::tuple_element_t<I, std::tuple<Tp...>>;
+  T tmp;
+  vec[0] >> tmp;
+  std::get<I>(t) = tmp;
+  vec.erase(vec.begin());
+  tuple_unpack<I + 1, Tp...>(t, vec);
+}
+
+template<class... Types>
+inline void operator>>(const YAML::Node &node, std::tuple<Types...> &obj) {
+  const std::vector<YAML::Node> vec(node.begin(), node.end());
+  tuple_unpack(obj, vec);
+}
+
+template<class... Types>
+inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::tuple<Types...> &input) {
+  return output;
+}
+
 template<typename T>
 inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &node) {
   try {
