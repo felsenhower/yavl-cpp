@@ -4,7 +4,6 @@
 #include <yaml-cpp/yaml.h>
 
 #include "yavl-cpp/runtime.h"
-#include "yavl-cpp/spec.h"
 #include "yavl-cpp/yavl.h"
 
 namespace YAVL {
@@ -15,25 +14,27 @@ void CodeGenerator::emit_header(const YAML::Node &spec, std::ostream &outstream,
   generator.emit_header();
 }
 
-CodeGenerator::CodeGenerator(const YAML::Node &spec, std::ostream &outstream, const bool is_emit_declarations,
+CodeGenerator::CodeGenerator(const YAML::Node &spec_yaml, std::ostream &outstream, const bool is_emit_declarations,
     const bool is_emit_readers, const bool is_emit_writers, const bool is_emit_validator)
-    : spec(spec),
-      outstream(outstream),
+    : outstream(outstream),
+      spec(load_spec(spec_yaml)),
       is_emit_declarations(is_emit_declarations),
       is_emit_readers(is_emit_readers),
       is_emit_writers(is_emit_writers),
       is_emit_validator(is_emit_validator) {
-  const auto &[valid_spec, error_message] = validate<SpecType>(spec);
-  assert(valid_spec);
+}
+
+SpecType CodeGenerator::load_spec(const YAML::Node &spec_yaml) {
+  SpecType tmp;
+  spec_yaml >> tmp;
+  return tmp;
 }
 
 void CodeGenerator::emit_header() {
-  YAML::Node types = spec["Types"];
-  assert(types.IsDefined() && types.IsMap());
+  const auto types = spec.Types;
   emit_includes();
-  for (const auto &type_def : types) {
-    const std::string type_name = type_def.first.as<std::string>();
-    const YAML::Node type_info = type_def.second;
+  for (const auto &[type_name, type_info] : types) {
+    assert(type_info.IsDefined() && !type_info.IsNull());
     emit_type(type_name, type_info);
   }
   if (is_emit_validator) {
@@ -48,13 +49,13 @@ void CodeGenerator::emit_includes() {
               << "#include \"yavl-cpp/runtime.h\"" << std::endl
               << std::endl;
   }
-  YAML::Node extra_includes = spec["ExtraIncludes"];
-  if (extra_includes.IsDefined() && extra_includes.IsSequence()) {
-    for (const auto &header : extra_includes) {
-      outstream << "#include " << header.as<std::string>() << std::endl;
+  auto extra_includes = spec.ExtraIncludes;
+  if (extra_includes.has_value()) {
+    for (const auto &header : extra_includes.value()) {
+      outstream << "#include " << header << std::endl;
     }
-    outstream << std::endl;
   }
+  outstream << std::endl;
 }
 
 void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &type_info) {
@@ -212,12 +213,11 @@ void CodeGenerator::emit_alias(const std::string &type_name, const YAML::Node &t
 }
 
 void CodeGenerator::emit_validator() {
-  YAML::Node types = spec["Types"];
-
+  const auto types = spec.Types;
   outstream << "inline std::vector<std::string> get_types() {" << std::endl << "  return {";
   bool first = true;
   for (const auto &type_def : types) {
-    const std::string type_name = type_def.first.as<std::string>();
+    const std::string type_name = type_def.first;
     if (!first) {
       outstream << ",";
     }
@@ -233,7 +233,7 @@ void CodeGenerator::emit_validator() {
             << std::endl;
   first = true;
   for (const auto &type_def : types) {
-    const std::string type_name = type_def.first.as<std::string>();
+    const std::string type_name = type_def.first;
     if (first) {
       outstream << "  ";
     } else {

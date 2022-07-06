@@ -4,16 +4,18 @@
 #include <string>
 #include <yaml-cpp/yaml.h>
 
+#include "yavl-cpp/spec.h"
+
 namespace YAVL {
 
 class CodeGenerator {
   public:
-    static void emit_header(const YAML::Node &spec, std::ostream &outstream, const bool is_emit_declarations,
+    static void emit_header(const YAML::Node &spec_yaml, std::ostream &outstream, const bool is_emit_declarations,
         const bool is_emit_readers, const bool is_emit_writers, const bool is_emit_validator);
 
   protected:
-    const YAML::Node &spec;
     std::ostream &outstream;
+    const SpecType spec;
     const bool is_emit_declarations;
     const bool is_emit_readers;
     const bool is_emit_writers;
@@ -21,6 +23,7 @@ class CodeGenerator {
 
     explicit CodeGenerator(const YAML::Node &spec, std::ostream &outstream, const bool is_emit_declarations,
         const bool is_emit_readers, const bool is_emit_writers, const bool is_emit_validator);
+    static SpecType load_spec(const YAML::Node &spec_yaml);
     void emit_header();
     void emit_includes();
     void emit_type(const std::string &type_name, const YAML::Node &type_info);
