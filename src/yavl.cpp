@@ -24,7 +24,7 @@ CodeGenerator::CodeGenerator(const YAML::Node &spec, std::ostream &outstream, co
 
 void CodeGenerator::emit_header() {
   YAML::Node types = spec["Types"];
-  assert(types.IsMap());
+  assert(types.IsDefined() && types.IsMap());
   emit_includes();
   for (const auto &type_def : types) {
     const std::string type_name = type_def.first.as<std::string>();
@@ -151,7 +151,7 @@ void CodeGenerator::emit_enum_declaration(const std::string &type_name, const YA
   outstream << "enum " << type_name << " {";
   bool first = true;
   for (const auto &choice : type_info) {
-    assert(choice.IsScalar());
+    assert(choice.IsDefined() && choice.IsScalar());
     if (!first) {
       outstream << ",";
     }
