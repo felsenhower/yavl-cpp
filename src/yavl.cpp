@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <optional>
 #include <yaml-cpp/yaml.h>
 
 #include "yavl-cpp/yavl.h"
@@ -83,7 +84,15 @@ void CodeGenerator::emit_map_declaration(const std::string &type_name, const YAM
   for (const auto &field : type_info) {
     const std::string field_name = field.first.as<std::string>();
     const std::string field_type = field.second.as<std::string>();
-    outstream << "  " << field_type << " " << field_name << ";" << std::endl;
+    auto bracket_pos = field_type.find("[");
+    bool is_c_array_type = (bracket_pos != std::string::npos);
+    if (is_c_array_type) {
+      const std::string base_type = field_type.substr(0, bracket_pos);
+      const std::string arr_length = field_type.substr(bracket_pos);
+      outstream << "  " << base_type << " " << field_name << arr_length << ";" << std::endl;
+    } else {
+      outstream << "  " << field_type << " " << field_name << ";" << std::endl;
+    }
   }
   outstream << "};" << std::endl << std::endl;
 }

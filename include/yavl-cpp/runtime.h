@@ -1,55 +1,16 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <functional>
 #include <map>
 #include <optional>
 #include <set>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <yaml-cpp/yaml.h>
-
-template<typename T>
-inline void operator>>(const YAML::Node &node, T &obj) {
-  obj = node.as<T>();
-}
-
-template<typename T>
-inline void operator>>(const YAML::Node &node, std::vector<T> &obj) {
-  for (const auto &it : node) {
-    T tmp;
-    (YAML::Node) it >> tmp;
-    obj.push_back(tmp);
-  }
-}
-
-template<typename KT, typename VT>
-inline void operator>>(const YAML::Node &node, std::map<KT, VT> &obj) {
-  for (const auto &it : node) {
-    KT key;
-    VT val;
-    it.first >> key;
-    it.second >> val;
-    obj[key] = val;
-  }
-}
-
-template<typename KT, typename VT>
-inline void operator>>(const YAML::Node &node, std::unordered_map<KT, VT> &obj) {
-  std::map<KT, VT> ordered_map;
-  node >> ordered_map;
-  std::copy(ordered_map.begin(), ordered_map.end(), std::back_inserter(obj));
-}
-
-template<typename T>
-inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &node) {
-  try {
-    T tmp;
-    node >> tmp;
-  } catch (const YAML::Exception &e) { return std::make_tuple(false, e.what()); }
-  return std::make_tuple(true, std::nullopt);
-}
 
 namespace YAVL {
 
@@ -85,4 +46,114 @@ class SuperfluousKeyException : public YAML::RepresentationException {
             std::string("Superfluous key \"") + key_name + "\" during conversion to type \"" + type_name + "\"") {}
 };
 
+class DuplicateSetItemException : public YAML::RepresentationException {
+  public:
+    explicit DuplicateSetItemException()
+        : YAML::RepresentationException(YAML::Mark::null_mark(), std::string("Duplicate key in set")) {}
+};
+
+class InvalidSequenceLengthException : public YAML::RepresentationException {
+  public:
+    explicit InvalidSequenceLengthException(std::size_t expected, std::size_t got)
+        : YAML::RepresentationException(YAML::Mark::null_mark(),
+            std::string("Invalid sequence length \"" + std::to_string(got) + "\", expected \""
+                + std::to_string(expected) + "\"")) {}
+};
+
 } // namespace YAVL
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, T &obj) {
+  obj = node.as<T>();
+}
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, std::vector<T> &obj) {
+  for (const auto &it : node) {
+    T tmp;
+    (YAML::Node) it >> tmp;
+    obj.push_back(tmp);
+  }
+}
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, std::set<T> &obj) {
+  std::vector<T> vec;
+  node >> vec;
+  std::copy(vec.begin(), vec.end(), std::inserter(obj, obj.begin()));
+  if (obj.size() != vec.size()) {
+    throw YAVL::DuplicateSetItemException();
+  }
+}
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, std::unordered_set<T> &obj) {
+  std::set<T> ordered_set;
+  node >> ordered_set;
+  std::copy(ordered_set.begin(), ordered_set.end(), std::inserter(obj, obj.begin()));
+}
+
+template<typename T>
+inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::unordered_set<T> &input) {
+  std::vector<T> vec;
+  std::copy(input.begin(), input.end(), std::back_inserter(vec));
+  return output << vec;
+}
+
+template<typename T, std::size_t N>
+inline void operator>>(const YAML::Node &node, std::array<T, N> &obj) {
+  std::vector<T> vec;
+  node >> vec;
+  if (vec.size() != N) {
+    throw YAVL::InvalidSequenceLengthException(N, vec.size());
+  }
+  std::copy(vec.begin(), vec.end(), obj.begin());
+}
+
+template<typename T, std::size_t N>
+inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::array<T, N> &input) {
+  std::vector<T> vec;
+  std::copy(input.begin(), input.end(), std::back_inserter(vec));
+  return output << vec;
+}
+
+template<typename T, std::size_t N>
+inline YAML::Emitter &operator<<(YAML::Emitter &output, const T (&input)[N]) {
+  std::vector<T> vec;
+  std::copy(std::begin(input), std::end(input), std::back_inserter(vec));
+  return output << vec;
+}
+
+template<typename T, std::size_t N>
+inline void operator>>(const YAML::Node &node, T (&obj)[N]) {
+  std::array<T, N> stdarr;
+  node >> stdarr;
+  std::copy(stdarr.begin(), stdarr.end(), std::begin(obj));
+}
+
+template<typename KT, typename VT>
+inline void operator>>(const YAML::Node &node, std::map<KT, VT> &obj) {
+  for (const auto &it : node) {
+    KT key;
+    VT val;
+    it.first >> key;
+    it.second >> val;
+    obj[key] = val;
+  }
+}
+
+template<typename KT, typename VT>
+inline void operator>>(const YAML::Node &node, std::unordered_map<KT, VT> &obj) {
+  std::map<KT, VT> ordered_map;
+  node >> ordered_map;
+  std::copy(ordered_map.begin(), ordered_map.end(), std::back_inserter(obj));
+}
+
+template<typename T>
+inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &node) {
+  try {
+    T tmp;
+    node >> tmp;
+  } catch (const YAML::Exception &e) { return std::make_tuple(false, e.what()); }
+  return std::make_tuple(true, std::nullopt);
+}

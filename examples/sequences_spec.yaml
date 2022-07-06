@@ -1,0 +1,9 @@
+ExtraIncludes:
+
+Types:
+    TopType:
+        vector_var: std::vector<int>
+        array_var: std::array<int, 5>
+        c_array_var: int[5]
+        set_var: std::set<int>
+        unordered_set_var: std::unordered_set<int>
