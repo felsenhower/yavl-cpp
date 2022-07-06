@@ -44,7 +44,7 @@ void CodeGenerator::emit_includes() {
               << std::endl;
   }
   YAML::Node extra_includes = spec["ExtraIncludes"];
-  if (extra_includes.IsSequence()) {
+  if (extra_includes.IsDefined() && extra_includes.IsSequence()) {
     for (const auto &header : extra_includes) {
       outstream << "#include " << header.as<std::string>() << std::endl;
     }
@@ -55,7 +55,8 @@ void CodeGenerator::emit_includes() {
 void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &type_info) {
   const bool is_map = type_info.IsMap();
   const bool is_enum = type_info.IsSequence();
-  assert(is_map != is_enum);
+  const bool is_alias = type_info.IsScalar();
+  assert((is_map ? 1 : 0) + (is_enum ? 1 : 0) + (is_alias ? 1 : 0) == 1);
   if (is_map) {
     if (is_emit_declarations) {
       emit_map_declaration(type_name, type_info);
@@ -66,7 +67,7 @@ void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &ty
     if (is_emit_writers) {
       emit_map_writer(type_name, type_info);
     }
-  } else {
+  } else if (is_enum) {
     if (is_emit_declarations) {
       emit_enum_declaration(type_name, type_info);
     }
@@ -76,6 +77,8 @@ void CodeGenerator::emit_type(const std::string &type_name, const YAML::Node &ty
     if (is_emit_writers) {
       emit_enum_writer(type_name, type_info);
     }
+  } else {
+    emit_alias(type_name, type_info);
   }
 }
 
@@ -196,6 +199,10 @@ void CodeGenerator::emit_enum_writer(const std::string &type_name, const YAML::N
               << "  }";
   }
   outstream << std::endl << "  return output;" << std::endl << "}" << std::endl << std::endl;
+}
+
+void CodeGenerator::emit_alias(const std::string &type_name, const YAML::Node &type_info) {
+  outstream << "typedef " << type_info.as<std::string>() << " " << type_name << ";" << std::endl << std::endl;
 }
 
 void CodeGenerator::emit_validator() {

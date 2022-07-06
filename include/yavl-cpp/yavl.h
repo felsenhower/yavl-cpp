@@ -30,6 +30,7 @@ class CodeGenerator {
     void emit_enum_declaration(const std::string &type_name, const YAML::Node &type_info);
     void emit_enum_reader(const std::string &type_name, const YAML::Node &type_info);
     void emit_enum_writer(const std::string &type_name, const YAML::Node &type_info);
+    void emit_alias(const std::string &type_name, const YAML::Node &type_info);
     void emit_validator();
 };
 
