@@ -1,0 +1,6 @@
+Types:
+    TopType:
+        enum_var:
+            - small
+            - medium
+            - large

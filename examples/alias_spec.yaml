@@ -1,0 +1,4 @@
+Types:
+    MyInt: int
+    TopType:
+        my_int: MyInt

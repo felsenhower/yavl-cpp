@@ -1,0 +1,5 @@
+ExtraIncludes: [<cstdint>]
+
+Types:
+    TopType:
+        foo: uint64_t

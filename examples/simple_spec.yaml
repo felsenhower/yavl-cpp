@@ -1,0 +1,7 @@
+ExtraIncludes: [<vector>, <string>]
+
+Types:
+    TopType:
+        my_vec: std::vector<std::string>
+        my_int: int
+        my_str: std::string
