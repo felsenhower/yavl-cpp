@@ -10,14 +10,14 @@ Types:
         ExtraIncludes: std::optional<std::vector<std::string>>
         Namespace: std::optional<std::string>
         Target: std::optional<TargetType>
-        # Simply choosing std::map<std::string, YAML::Node> as the type of the "Types" field is a lazy and horrible hack.
+        # Simply choosing tsl::ordered_map<std::string, YAML::Node> as the type of the "Types" field is a lazy and horrible hack.
         # This is basically a way to communicate that we don't care about the type.
         # Better would be something like the following:
         # ---
         # MapDeclarationType: std::map<std::string, std::string>
         # ScalarDeclarationType: std::string
         # EnumDeclarationType: std::vector<std::string>
-        # Types: std::map<std::string, std::variant<MapDeclarationType, ScalarDeclarationType, EnumDeclarationType>>
+        # Types: tsl::ordered_map<std::string, std::variant<MapDeclarationType, ScalarDeclarationType, EnumDeclarationType>>
         # ---
         # But, since yavl-cpp doesn't support std::variant at the moment, this is currently not possible.
-        Types: std::map<std::string, YAML::Node>
+        Types: tsl::ordered_map<std::string, YAML::Node>

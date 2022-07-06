@@ -5,7 +5,7 @@ COMPILER_SOURCES := src/yavl-compiler.cpp src/yavl.cpp
 VALIDATOR_SOURCES := src/yavl-validator.cpp src/yavl.cpp
 
 CXX = g++
-CXXFLAGS = -O3 -std=c++20 -Wall -Werror -Wpedantic -I./include
+CXXFLAGS = -O3 -std=c++20 -Wall -Werror -Wpedantic -I./include -Iordered-map/include
 LDFLAGS += $(shell pkg-config --libs yaml-cpp)
 
 default: yavl-compiler yavl-validator

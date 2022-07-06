@@ -39,7 +39,7 @@ struct SpecType {
   std::optional<std::vector<std::string>> ExtraIncludes;
   std::optional<std::string> Namespace;
   std::optional<TargetType> Target;
-  std::map<std::string, YAML::Node> Types;
+  tsl::ordered_map<std::string, YAML::Node> Types;
 };
 
 inline void operator>>(const YAML::Node &input, SpecType &output) {
