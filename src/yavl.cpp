@@ -3,6 +3,8 @@
 #include <optional>
 #include <yaml-cpp/yaml.h>
 
+#include "yavl-cpp/runtime.h"
+#include "yavl-cpp/spec.h"
 #include "yavl-cpp/yavl.h"
 
 namespace YAVL {
@@ -20,7 +22,10 @@ CodeGenerator::CodeGenerator(const YAML::Node &spec, std::ostream &outstream, co
       is_emit_declarations(is_emit_declarations),
       is_emit_readers(is_emit_readers),
       is_emit_writers(is_emit_writers),
-      is_emit_validator(is_emit_validator) {}
+      is_emit_validator(is_emit_validator) {
+  const auto &[valid_spec, error_message] = validate<SpecType>(spec);
+  assert(valid_spec);
+}
 
 void CodeGenerator::emit_header() {
   YAML::Node types = spec["Types"];

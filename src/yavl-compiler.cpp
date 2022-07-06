@@ -7,6 +7,8 @@
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
+#include "yavl-cpp/runtime.h"
+#include "yavl-cpp/spec.h"
 #include "yavl-cpp/yavl.h"
 
 class Compiler {
@@ -70,6 +72,10 @@ void Compiler::parse_args() {
     spec = YAML::LoadFile(spec_filename);
   } catch (const YAML::Exception &e) {
     parse_error("Couldn't read spec \"" + spec_filename + "\": \"" + e.what() + "\"");
+  }
+  const auto &[valid_spec, error_message] = validate<SpecType>(spec);
+  if (!valid_spec) {
+    parse_error("Invalid spec \"" + spec_filename + "\": \"" + error_message.value_or("(Error Unknown)") + "\"");
   }
   outfstream.open(header_filename);
   if (!outfstream.is_open()) {
