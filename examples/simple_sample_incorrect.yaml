@@ -1,2 +1,3 @@
 my_vec: ["monkey", "bread", [5]]
+my_enum: foo
 my_int: foo

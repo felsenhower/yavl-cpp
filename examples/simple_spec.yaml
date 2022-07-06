@@ -1,7 +1,12 @@
 ExtraIncludes: [<vector>, <string>]
 
 Types:
+    String: std::string
+    EnumType:
+        - first_choice
+        - second_choice
     TopType:
         my_vec: std::vector<std::string>
+        my_enum: EnumType
         my_int: int
-        my_str: std::string
+        my_str: String

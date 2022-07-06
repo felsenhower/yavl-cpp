@@ -1,3 +1,4 @@
 my_vec: ["monkey", "bread", "tree"]
+my_enum: first_choice
 my_int: 5
 my_str: foo
