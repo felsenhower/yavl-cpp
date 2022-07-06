@@ -11,193 +11,165 @@ Some key differences are:
 
 ## Usage
 
-YAVL specifications are simple:
+The full YAVL language specification can be found in the [Wiki](../../wiki/Language-Specification).
+Here is an example:
 
 ```yaml
 Types:
-    Size: 
-        - big
-        - small
-    A:
-        a1: std::string
-        a2: std::string
-    Pieces:
-        a: std::vector<A>
-        b: std::vector<int>
-    Header:
-        name: std::string
-        version: std::string
-        size: Size
-        pieces: Pieces
-    Top:
-        header: Header
+    String: std::string
+    EnumType:
+        - first_choice
+        - second_choice
+    TopType:
+        my_vec: std::vector<std::string>
+        my_enum: EnumType
+        my_int: int
+        my_str: String
 ```
 
-All types must be declared under the key `Types`.
+Here is an example of a YAML document that matches the type `TopType` that is declared in this spec:
 
-A type will be declared an `enum` if its corresponding YAML node is a sequence, and a `struct` if its YAML node is a map. 
+```YAML
+my_vec: ["monkey", "bread", "tree"]
+my_enum: first_choice
+my_int: 5
+my_str: foo
+```
 
-Running the YAVL compiler creates a header file.
+The YAVL compiler can be built and run like this:
 
 ```bash
+$ git clone https://github.com/felsenhower/yavl-cpp
+$ cd yavl-cpp
 $ make
-$ ./yavl-compiler --no-emit-readers --no-emit-writers --no-emit-validator examples/example_2_spec.yaml simple.h
+$ ./yavl-compiler examples/simple_spec.yaml simple.h
 ```
 
-The resulting header file `simple.h` is then
+The resulting C++ header file `simple.h` will contain the following declarations (among other things):
+
+```C++
+typedef std::string String;
+
+enum EnumType {
+  first_choice,
+  second_choice
+};
+
+struct TopType {
+  std::vector<std::string> my_vec;
+  EnumType my_enum;
+  int my_int;
+  String my_str;
+};
+```
+
+<details>
+  <summary>Full <code>simple.h</code> (click to expand!)</summary>
 
 ```C++
 #pragma once
 
-enum Size {
-  big,
-  small
-};
-
-struct Pieces {
-  std::vector<std::string> a;
-  std::vector<uint64_t> b;
-};
-
-struct Header {
-  std::string name;
-  std::string version;
-  Size size;
-  Pieces pieces;
-};
-
-struct Top {
-  Header header;
-};
-```
-
-By default, `yavl-compiler` creates declarations, readers, writers, and validators. Except for the declarations, this functionality depends on `yaml-cpp`.
-
-```bash
-$ ./yavl-compiler examples/example_2_spec.yaml simple.h
-```
-
-The `simple.h` will then look like this:
-
-```C
-#pragma once
-
 #include <yaml-cpp/yaml.h>
-#include "yavl-cpp/convert.h"
+#include "yavl-cpp/runtime.h"
 
-enum Size {
-  big,
-  small
+#include <vector>
+#include <string>
+
+typedef std::string String;
+
+enum EnumType {
+  first_choice,
+  second_choice
 };
 
-inline void operator>>(const YAML::Node &input, Size &output) {
+inline void operator>>(const YAML::Node &input, EnumType &output) {
   std::string tmp;
   input >> tmp;
-  if (tmp == "big") {
-    output = big;
-  } else if (tmp == "small") {
-    output = small;
+  if (tmp == "first_choice") {
+    output = first_choice;
+  } else if (tmp == "second_choice") {
+    output = second_choice;
+  } else {
+    throw YAVL::BadConversionException(input, "EnumType");
   }
 }
-inline YAML::Emitter& operator<<(YAML::Emitter &output, const Size &input) {
-  if (input == big) {
-    output << "big";
-  } else if (input == small) {
-    output << "small";
+inline YAML::Emitter& operator<<(YAML::Emitter &output, const EnumType &input) {
+  if (input == first_choice) {
+    output << "first_choice";
+  } else if (input == second_choice) {
+    output << "second_choice";
   }
   return output;
 }
 
-struct Pieces {
-  std::vector<std::string> a;
-  std::vector<uint64_t> b;
+struct TopType {
+  std::vector<std::string> my_vec;
+  EnumType my_enum;
+  int my_int;
+  String my_str;
 };
 
-inline void operator>>(const YAML::Node &input, Pieces &output) {
-  input["a"] >> output.a;
-  input["b"] >> output.b;
+inline void operator>>(const YAML::Node &input, TopType &output) {
+  const std::set<std::string> keys = {
+    "my_vec",
+    "my_enum",
+    "my_int",
+    "my_str"
+  };
+  for (const auto &key : keys) {
+    if (!input[key]) {
+      throw YAVL::MissingKeyException("TopType", key);
+    }
+  }
+  for (const auto &it : input) {
+    const std::string key = it.first.as<std::string>();
+    if (!keys.contains(key)) {
+      throw YAVL::SuperfluousKeyException("TopType", key);
+    }
+  }
+  input["my_vec"] >> output.my_vec;
+  input["my_enum"] >> output.my_enum;
+  input["my_int"] >> output.my_int;
+  input["my_str"] >> output.my_str;
 }
 
-inline YAML::Emitter& operator<<(YAML::Emitter &output, const Pieces &input) {
+inline YAML::Emitter& operator<<(YAML::Emitter &output, const TopType &input) {
   output << YAML::BeginMap;
-  output << YAML::Key << "a";
-  output << YAML::Value << input.a;
-  output << YAML::Key << "b";
-  output << YAML::Value << input.b;
+  output << YAML::Key << "my_vec";
+  output << YAML::Value << input.my_vec;
+  output << YAML::Key << "my_enum";
+  output << YAML::Value << input.my_enum;
+  output << YAML::Key << "my_int";
+  output << YAML::Value << input.my_int;
+  output << YAML::Key << "my_str";
+  output << YAML::Value << input.my_str;
   output << YAML::EndMap;
   return output;
 }
 
-struct Header {
-  std::string name;
-  std::string version;
-  Size size;
-  Pieces pieces;
-};
-
-inline void operator>>(const YAML::Node &input, Header &output) {
-  input["name"] >> output.name;
-  input["version"] >> output.version;
-  input["size"] >> output.size;
-  input["pieces"] >> output.pieces;
+inline std::vector<std::string> get_types() {
+  return {
+    "String",
+    "EnumType",
+    "TopType"
+  };
 }
 
-inline YAML::Emitter& operator<<(YAML::Emitter &output, const Header &input) {
-  output << YAML::BeginMap;
-  output << YAML::Key << "name";
-  output << YAML::Value << input.name;
-  output << YAML::Key << "version";
-  output << YAML::Value << input.version;
-  output << YAML::Key << "size";
-  output << YAML::Value << input.size;
-  output << YAML::Key << "pieces";
-  output << YAML::Value << input.pieces;
-  output << YAML::EndMap;
-  return output;
-}
-
-struct Top {
-  Header header;
-};
-
-inline void operator>>(const YAML::Node &input, Top &output) {
-  input["header"] >> output.header;
-}
-
-inline YAML::Emitter& operator<<(YAML::Emitter &output, const Top &input) {
-  output << YAML::BeginMap;
-  output << YAML::Key << "header";
-  output << YAML::Value << input.header;
-  output << YAML::EndMap;
-  return output;
-}
-
-inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &node, const std::string type_name) {
-  if (type_name == "Size") {
-    return validate<Size>(node);
-  } else if (type_name == "Pieces") {
-    return validate<Pieces>(node);
-  } else if (type_name == "Header") {
-    return validate<Header>(node);
-  } else if (type_name == "Top") {
-    return validate<Top>(node);
+inline std::tuple<bool, std::optional<std::string>> validate_simple(const YAML::Node &node, const std::string type_name) {
+  if (type_name == "String") {
+    return validate<String>(node);
+  } else if (type_name == "EnumType") {
+    return validate<EnumType>(node);
+  } else if (type_name == "TopType") {
+    return validate<TopType>(node);
   }
   return std::make_tuple(false, std::nullopt);
 }
 ```
 
-Load a YAML document into a generated data structure like this:
+</details>
 
-```C++
-#include "yaml-cpp/yaml.h"
-#include "simple.h"
-
-int main() {
-    YAML::Node doc = YAML::LoadFile("example.yaml");
-    Top top;
-    doc >> top;
-}
-```
+By default, `yavl-compiler` creates declarations, readers, writers, and validators. Except for the declarations, this functionality depends on `yaml-cpp`. See the [Wiki](../../wiki/Command-Line-Interface) for the complete Command Line Interface description.
 
 When including this header into your C/C++ project, don't forget to add a `-I/path/to/yavl-cpp/include/` to your `CFLAGS` and to add `yaml-cpp`:
 
@@ -225,7 +197,11 @@ const auto &[ok, error_message] = validate(doc, "Top");
 You can use the script `validate.sh` to validate a YAML document against a YAVL specification:
 
 ```bash
-$ ./validate.sh examples/example_1_sample_correct.yaml examples/example_1_spec.yaml Top
+$ ./validate.sh examples/simple_sample_correct.yaml examples/simple_spec.yaml TopType
+Compiling spec...
+Compiling shared object...
+Validating...
+Validation successful!
 ```
 
 > :warning: **Attention: This is potentially dangerous!** `validate.sh` will compile your spec to a header, use `g++` to create a dynamic library, and `yavl-validator` will execute binary code from this library without any checks. Never execute this script in a working environment you don't trust 100%! This is purely for demonstration purposes.
