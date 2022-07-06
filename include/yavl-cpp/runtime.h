@@ -188,8 +188,25 @@ inline void operator>>(const YAML::Node &node, std::tuple<Types...> &obj) {
   tuple_unpack(obj, vec);
 }
 
+template<std::size_t I = 0, typename... Tp>
+inline typename std::enable_if<I == sizeof...(Tp), void>::type
+  tuple_pack(std::tuple<Tp...>& t, YAML::Emitter &output)
+  { }
+
+template<std::size_t I = 0, typename... Tp>
+inline typename std::enable_if<I < sizeof...(Tp), void>::type
+  tuple_pack(std::tuple<Tp...>& t, YAML::Emitter &output)
+  {
+    output << std::get<I>(t);
+    tuple_pack<I + 1, Tp...>(t, output);
+  }
+
 template<class... Types>
 inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::tuple<Types...> &input) {
+  output << YAML::BeginSeq;
+  std::tuple<Types...> tmp = input;
+  tuple_pack(tmp, output);
+  output << YAML::EndSeq;
   return output;
 }
 

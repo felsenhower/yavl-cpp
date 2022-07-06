@@ -1,10 +1,11 @@
-ExtraIncludes: [<map>]
+ExtraIncludes: [<map>, <unordered_map>, <string>]
 
 Types:
     StructType:
-        a: int
-        b: int
-        c: int
+        f9: int
+        f8: int
+        f7: int
     TopType:
         struct_var: StructType
         map_var: std::map<std::string, int>
+        unordered_map_var: std::unordered_map<std::string, int>

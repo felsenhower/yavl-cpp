@@ -1,4 +1,4 @@
-ExtraIncludes:
+ExtraIncludes: [<vector>, <array>, <set>, <unordered_set>, <tuple>, <string>]
 
 Types:
     TopType:
@@ -7,3 +7,4 @@ Types:
         c_array_var: int[5]
         set_var: std::set<int>
         unordered_set_var: std::unordered_set<int>
+        tuple_var: std::tuple<int, std::string>
