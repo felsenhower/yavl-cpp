@@ -1,0 +1,22 @@
+ExtraIncludes: [<any>, <map>, <optional>, <string>, <vector>, "\"yaml-cpp/yaml.h\""]
+
+Types:
+    TargetType:
+        - C
+        - CPP
+    SpecType:
+        # Following are the optional Meta Fields that can be used in a spec.
+        # See the Language Specification inside the Wiki to get a description of them.
+        ExtraIncludes: std::optional<std::vector<std::string>>
+        Namespace: std::optional<std::string>
+        Target: std::optional<TargetType>
+        # Simply choosing YAML::Node as the type of the Types array is a lazy and horrible hack.
+        # Better would be something like the following:
+        # ---
+        # MapDeclarationType: std::map<std::string, std::string>
+        # ScalarDeclarationType: std::string
+        # EnumDeclarationType: std::vector<std::string>
+        # Types: std::vector<std::variant<MapDeclarationType, ScalarDeclarationType, EnumDeclarationType>>
+        # ---
+        # But, since yavl-cpp doesn't support std::variant at the moment, this is currently not possible.
+        Types: YAML::Node
