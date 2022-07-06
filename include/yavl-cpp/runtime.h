@@ -52,6 +52,12 @@ class DuplicateSetItemException : public YAML::RepresentationException {
         : YAML::RepresentationException(YAML::Mark::null_mark(), std::string("Duplicate key in set")) {}
 };
 
+class DuplicateMapItemException : public YAML::RepresentationException {
+  public:
+    explicit DuplicateMapItemException()
+        : YAML::RepresentationException(YAML::Mark::null_mark(), std::string("Duplicate key in map")) {}
+};
+
 class InvalidSequenceLengthException : public YAML::RepresentationException {
   public:
     explicit InvalidSequenceLengthException(std::size_t expected, std::size_t got)
@@ -140,13 +146,23 @@ inline void operator>>(const YAML::Node &node, std::map<KT, VT> &obj) {
     it.second >> val;
     obj[key] = val;
   }
+  if (obj.size() != node.size()) {
+    throw YAVL::DuplicateMapItemException();
+  }
 }
 
 template<typename KT, typename VT>
 inline void operator>>(const YAML::Node &node, std::unordered_map<KT, VT> &obj) {
   std::map<KT, VT> ordered_map;
   node >> ordered_map;
-  std::copy(ordered_map.begin(), ordered_map.end(), std::back_inserter(obj));
+  std::copy(ordered_map.begin(), ordered_map.end(), std::inserter(obj, obj.end()));
+}
+
+template<typename KT, typename VT>
+inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::unordered_map<KT, VT> &input) {
+  std::map<KT, VT> ordered_map;
+  std::copy(input.begin(), input.end(), std::inserter(ordered_map, ordered_map.end()));
+  return output << ordered_map;
 }
 
 template<typename T>
