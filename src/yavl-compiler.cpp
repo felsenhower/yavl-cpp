@@ -15,7 +15,7 @@ class Compiler {
     void generate();
 
   private:
-    static const inline std::map<const std::string, const std::string &> option_descriptions = {
+    static const inline std::map<const std::string, const std::string> option_descriptions = {
         {"--help",                 "Print this help."                                        },
         {"--no-emit-declarations", "Don't emit type declarations."                           },
         {"--no-emit-readers",      "Don't emit code to convert from YAML to generated types."},
