@@ -102,7 +102,7 @@ void CodeGenerator::emit_map_declaration(const std::string &type_name, const YAM
 
 void CodeGenerator::emit_map_reader(const std::string &type_name, const YAML::Node &type_info) {
   outstream << "inline void operator>>(const YAML::Node &input, " << type_name << " &output) {" << std::endl
-            << "  const std::set<std::string> keys = {";
+            << "  const std::unordered_map<std::string, bool> keys = {";
   bool first = true;
   for (const auto &field : type_info) {
     if (!first) {
@@ -110,12 +110,13 @@ void CodeGenerator::emit_map_reader(const std::string &type_name, const YAML::No
     }
     first = false;
     const std::string field_name = field.first.as<std::string>();
-    outstream << std::endl << "    \"" << field_name << "\"";
+    const bool is_required = !(field.second.as<std::string>().rfind("std::optional<", 0) == 0);
+    outstream << std::endl << "    {\"" << field_name << "\", " << (is_required ? "true" : "false") << "}";
   }
   outstream << std::endl
             << "  };" << std::endl
-            << "  for (const auto &key : keys) {" << std::endl
-            << "    if (!input[key]) {" << std::endl
+            << "  for (const auto &[key, is_required] : keys) {" << std::endl
+            << "    if (is_required && !input[key]) {" << std::endl
             << "      throw YAVL::MissingKeyException(\"" << type_name << "\", key);" << std::endl
             << "    }" << std::endl
             << "  }" << std::endl

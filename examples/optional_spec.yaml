@@ -1,0 +1,7 @@
+ExtraIncludes: [<optional>]
+
+Types:
+    TopType:
+        optional_1: std::optional<int>
+        optional_2: std::optional<int>
+        optional_3: std::optional<int>

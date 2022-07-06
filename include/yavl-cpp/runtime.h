@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <any>
 #include <array>
 #include <functional>
 #include <map>
@@ -215,4 +216,24 @@ inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &n
     node >> tmp;
   } catch (const YAML::Exception &e) { return std::make_tuple(false, e.what()); }
   return std::make_tuple(true, std::nullopt);
+}
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, std::optional<T> &obj) {
+  if (node.IsDefined() && !node.IsNull()) {
+    T tmp;
+    node >> tmp;
+    obj = tmp;
+  } else {
+    obj = std::nullopt;
+  }
+}
+
+template<typename T>
+inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::optional<T> &input) {
+  if (input.has_value()) {
+    T tmp = input.value();
+    return output << tmp;
+  }
+  return output;
 }
