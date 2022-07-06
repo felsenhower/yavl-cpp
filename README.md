@@ -186,9 +186,9 @@ If you wish to create header files that are valid C code, simply don't emit writ
 Using the example above, you can also validate YAML documents:
 
 ```C++
-const auto &[ok, error_message] = validate<Top>(doc);
+const auto &[ok, error_message] = validate<TopType>(doc);
 // or
-const auto &[ok, error_message] = validate(doc, "Top");
+const auto &[ok, error_message] = validate(doc, "TopType");
 ```
 
 `ok` is a `bool` which is `true` if `doc` is a valid YAML representation of the `Top` type. 
