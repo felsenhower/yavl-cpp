@@ -218,7 +218,7 @@ Validation successful!
 
 The original `yavl-cpp` was written by **[Ranganathan Sankaralingam](https://github.com/psranga)**. It has been auto-converted using `git-svn` from [Google Code Archive](https://code.google.com/archive/p/yavl-cpp/). The original branches `trunk` and `yatc` are archived.
 
-The `master` branch is based on the `yatc` branch. Since then, the project has developed in quite a different direction by me (**[Ruben Felgenhauer](https://github.com/felsenhower)**).
+The `master` branch is based on the `yatc` branch. Since then, the project was developed in quite a different direction (aside from the name and the general idea, nothing of the original code is left) by me (**[Ruben Felgenhauer](https://github.com/felsenhower)**).
 
 The new YAVL syntax is inspired by the [`yavl-cpp` fork](https://github.com/pieterlexis/yavl-cpp/commit/536ddc3f77231d0541c1103727d06482e1b89b43) by **[Pieter Lexis](https://github.com/pieterlexis)**.
 
