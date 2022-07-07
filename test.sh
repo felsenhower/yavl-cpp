@@ -3,6 +3,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+cd "$(dirname "$0")"
+
 test_names="$(for f in examples/*.yaml ; do echo "$f" ; done | sed -E 's/^examples\///g;s/_spec.yaml$//g;s/_sample_correct.yaml//g;s/_sample_incorrect.yaml//g' | sort -u)"
 
 echo '[ Validate header generated from spec_spec.yaml ]'
