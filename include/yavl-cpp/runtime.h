@@ -12,7 +12,9 @@
 #include <unordered_set>
 #include <vector>
 #include <yaml-cpp/yaml.h>
+
 #include "tsl/ordered_map.h"
+#include "tsl/ordered_set.h"
 
 namespace YAVL {
 
@@ -84,30 +86,6 @@ inline void operator>>(const YAML::Node &node, std::vector<T> &obj) {
   }
 }
 
-template<typename T>
-inline void operator>>(const YAML::Node &node, std::set<T> &obj) {
-  std::vector<T> vec;
-  node >> vec;
-  std::copy(vec.begin(), vec.end(), std::inserter(obj, obj.begin()));
-  if (obj.size() != vec.size()) {
-    throw YAVL::DuplicateSetItemException();
-  }
-}
-
-template<typename T>
-inline void operator>>(const YAML::Node &node, std::unordered_set<T> &obj) {
-  std::set<T> ordered_set;
-  node >> ordered_set;
-  std::copy(ordered_set.begin(), ordered_set.end(), std::inserter(obj, obj.begin()));
-}
-
-template<typename T>
-inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::unordered_set<T> &input) {
-  std::vector<T> vec;
-  std::copy(input.begin(), input.end(), std::back_inserter(vec));
-  return output << vec;
-}
-
 template<typename T, std::size_t N>
 inline void operator>>(const YAML::Node &node, std::array<T, N> &obj) {
   std::vector<T> vec;
@@ -139,6 +117,44 @@ inline void operator>>(const YAML::Node &node, T (&obj)[N]) {
   std::copy(stdarr.begin(), stdarr.end(), std::begin(obj));
 }
 
+template<typename T>
+inline void operator>>(const YAML::Node &node, tsl::ordered_set<T> &obj) {
+  std::vector<T> vec;
+  node >> vec;
+  std::copy(vec.begin(), vec.end(), std::inserter(obj, obj.begin()));
+  if (obj.size() != vec.size()) {
+    throw YAVL::DuplicateSetItemException();
+  }
+}
+
+template<typename T>
+inline YAML::Emitter &operator<<(YAML::Emitter &output, const tsl::ordered_set<T> &input) {
+  std::vector<T> vec;
+  std::copy(input.begin(), input.end(), std::back_inserter(vec));
+  return output << vec;
+}
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, std::set<T> &obj) {
+  tsl::ordered_set<T> tmp;
+  node >> tmp;
+  std::copy(tmp.begin(), tmp.end(), std::inserter(obj, obj.begin()));
+}
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, std::unordered_set<T> &obj) {
+  tsl::ordered_set<T> tmp;
+  node >> tmp;
+  std::copy(tmp.begin(), tmp.end(), std::inserter(obj, obj.begin()));
+}
+
+template<typename T>
+inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::unordered_set<T> &input) {
+  std::vector<T> vec;
+  std::copy(input.begin(), input.end(), std::back_inserter(vec));
+  return output << vec;
+}
+
 template<typename KT, typename VT>
 inline void operator>>(const YAML::Node &node, tsl::ordered_map<KT, VT> &obj) {
   for (const auto &it : node) {
@@ -155,9 +171,12 @@ inline void operator>>(const YAML::Node &node, tsl::ordered_map<KT, VT> &obj) {
 
 template<typename KT, typename VT>
 inline YAML::Emitter &operator<<(YAML::Emitter &output, const tsl::ordered_map<KT, VT> &input) {
-  std::map<KT, VT> tmp;
-  std::copy(input.begin(), input.end(), std::inserter(tmp, tmp.end()));
-  return output << tmp;
+  output << YAML::BeginMap;
+  for (const auto &[key, value] : input) {
+    output << YAML::Key << key << YAML::Value << value;
+  }
+  output << YAML::EndMap;
+  return output;
 }
 
 template<typename KT, typename VT>
@@ -169,16 +188,16 @@ inline void operator>>(const YAML::Node &node, std::map<KT, VT> &obj) {
 
 template<typename KT, typename VT>
 inline void operator>>(const YAML::Node &node, std::unordered_map<KT, VT> &obj) {
-  std::map<KT, VT> tmp;
+  tsl::ordered_map<KT, VT> tmp;
   node >> tmp;
   std::copy(tmp.begin(), tmp.end(), std::inserter(obj, obj.end()));
 }
 
 template<typename KT, typename VT>
 inline YAML::Emitter &operator<<(YAML::Emitter &output, const std::unordered_map<KT, VT> &input) {
-  std::map<KT, VT> ordered_map;
-  std::copy(input.begin(), input.end(), std::inserter(ordered_map, ordered_map.end()));
-  return output << ordered_map;
+  tsl::ordered_map<KT, VT> tmp;
+  std::copy(input.begin(), input.end(), std::inserter(tmp, tmp.end()));
+  return output << tmp;
 }
 
 template<std::size_t I = 0, typename... Tp>

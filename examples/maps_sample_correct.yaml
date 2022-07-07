@@ -1,12 +1,16 @@
 struct_var:
-    f9: 5
-    f8: 6
-    f7: 7
+    f12: 1
+    f11: 2
+    f10: 3
+ordered_map_var:
+    f9: 4
+    f8: 5
+    f7: 6
 map_var:
-    f6: 8
-    f5: 9
-    f4: 10
+    f6: 7
+    f5: 8
+    f4: 9
 unordered_map_var:
-    f3: 11
-    f2: 12
-    f1: 13
+    f3: 10
+    f2: 11
+    f1: 12

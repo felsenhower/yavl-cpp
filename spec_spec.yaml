@@ -1,4 +1,4 @@
-ExtraIncludes: [<any>, <map>, <optional>, <string>, <vector>, "\"yaml-cpp/yaml.h\""]
+ExtraIncludes: [<any>, <map>, <optional>, <string>, <vector>, '"yaml-cpp/yaml.h"']
 
 Types:
     TargetType:

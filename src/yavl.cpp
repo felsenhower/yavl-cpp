@@ -21,8 +21,7 @@ CodeGenerator::CodeGenerator(const YAML::Node &spec_yaml, std::ostream &outstrea
       is_emit_declarations(is_emit_declarations),
       is_emit_readers(is_emit_readers),
       is_emit_writers(is_emit_writers),
-      is_emit_validator(is_emit_validator) {
-}
+      is_emit_validator(is_emit_validator) {}
 
 SpecType CodeGenerator::load_spec(const YAML::Node &spec_yaml) {
   SpecType tmp;

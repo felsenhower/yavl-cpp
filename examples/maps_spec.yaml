@@ -1,11 +1,12 @@
-ExtraIncludes: [<map>, <unordered_map>, <string>]
+ExtraIncludes: [<map>, <unordered_map>, <string>, '"tsl/ordered_map.h"']
 
 Types:
     StructType:
-        f9: int
-        f8: int
-        f7: int
+        f12: int
+        f11: int
+        f10: int
     TopType:
         struct_var: StructType
+        ordered_map_var: tsl::ordered_map<std::string, int>
         map_var: std::map<std::string, int>
         unordered_map_var: std::unordered_map<std::string, int>
