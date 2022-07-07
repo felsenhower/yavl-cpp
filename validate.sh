@@ -15,7 +15,6 @@ function cleanup() {
 trap cleanup EXIT
 
 incdir="$(pwd)"/include
-tsldir="$(pwd)"/ordered-map/include
 libtemplate='src/libtemplate.cpp'
 shared_object="$tmpdir"/libspec.so
 
@@ -23,7 +22,7 @@ echo 'Compiling spec...'
 ./yavl-compiler "$spec_file" "$tmpdir"/spec.h
 
 echo 'Compiling shared object...'
-g++ -std=c++20 -shared -fPIC "$libtemplate" -I"$tmpdir" -I"$incdir" -I"$tsldir" -o "$shared_object" 
+g++ -std=c++20 -shared -fPIC "$libtemplate" -I"$tmpdir" -I"$incdir" -o "$shared_object" 
 
 echo 'Validating...'
 ./yavl-validator "$sample_file" "$shared_object" "$type_name"
