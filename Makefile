@@ -1,8 +1,8 @@
 .PHONY: default all clean test
 
 BUILD_DIR := build
-SAMPLE_VALIDATOR_SOURCES := src/yavl-validate-sample.cpp src/yavl.cpp
-SPEC_VALIDATOR_SOURCES := src/yavl-validate-spec.cpp src/yavl.cpp
+SAMPLE_VALIDATOR_SOURCE := src/yavl-validate-sample.cpp
+SPEC_VALIDATOR_SOURCE := src/yavl-validate-spec.cpp
 
 CXX = g++
 CXXFLAGS = -O3 -std=c++20 -Wall -Werror -Wpedantic -I./include
@@ -18,13 +18,13 @@ test: default
 yavl-validate-sample: $(BUILD_DIR)/yavl-validate-sample
 	ln -sf $^ $@
 	
-$(BUILD_DIR)/yavl-validate-sample: $(addprefix $(BUILD_DIR)/,$(SAMPLE_VALIDATOR_SOURCES:.cpp=.o))
+$(BUILD_DIR)/yavl-validate-sample: $(addprefix $(BUILD_DIR)/,$(SAMPLE_VALIDATOR_SOURCE:.cpp=.o))
 	$(CXX) $^ $(CXXFLAGS) $(LDFLAGS) -ldl -o $@
 
 yavl-validate-spec: $(BUILD_DIR)/yavl-validate-spec
 	ln -sf $^ $@
 
-$(BUILD_DIR)/yavl-validate-spec: $(addprefix $(BUILD_DIR)/,$(SPEC_VALIDATOR_SOURCES:.cpp=.o))
+$(BUILD_DIR)/yavl-validate-spec: $(addprefix $(BUILD_DIR)/,$(SPEC_VALIDATOR_SOURCE:.cpp=.o))
 	$(CXX) $^ $(CXXFLAGS) $(LDFLAGS) -o $@	
 	
 $(BUILD_DIR)/%.o: %.cpp
