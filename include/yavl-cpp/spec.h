@@ -25,6 +25,7 @@ inline void operator>>(const YAML::Node &input, TargetType &output) {
     throw YAVL::BadConversionException(input, "TargetType");
   }
 }
+
 inline YAML::Emitter& operator<<(YAML::Emitter &output, const TargetType &input) {
   if (input == C) {
     output << "C";
