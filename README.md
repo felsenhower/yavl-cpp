@@ -7,7 +7,7 @@ Some key differences are:
 - Structure definitions in `yavl-cpp` are done via YAML documents.
 - `yavl-cpp` does not perform any kind of serialization.
 - Most of the validation is done either during parsing (by `yaml-cpp`) or in compilation (by `g++`). 
-`yavl-compiler` doesn't verify any of the types you specified. All types that `yaml-cpp` and the compiler understand, are valid.
+`yavl-compile` doesn't verify any of the types you specified. All types that `yaml-cpp` and the compiler understand, are valid.
 
 ## Usage
 
@@ -42,7 +42,7 @@ The YAVL compiler can be built and run like this:
 $ git clone https://github.com/felsenhower/yavl-cpp
 $ cd yavl-cpp
 $ make
-$ ./yavl-compiler examples/simple_spec.yaml simple.h
+$ ./yavl-compile examples/simple_spec.yaml simple.h
 ```
 
 The resulting C++ header file `simple.h` will contain the following declarations (among other things):
@@ -169,7 +169,7 @@ inline std::tuple<bool, std::optional<std::string>> validate_simple(const YAML::
 
 </details>
 
-By default, `yavl-compiler` creates declarations, readers, writers, and validators. Except for the declarations, this functionality depends on `yaml-cpp`. See the [Wiki](../../wiki/Command-Line-Interface) for the complete Command Line Interface description.
+By default, `yavl-compile` creates declarations, readers, writers, and validators. Except for the declarations, this functionality depends on `yaml-cpp`. See the [Wiki](../../wiki/Command-Line-Interface) for the complete Command Line Interface description.
 
 When including this header into your C/C++ project, don't forget to add a `-I/path/to/yavl-cpp/include/` to your `CFLAGS` and to add `yaml-cpp`:
 
@@ -179,7 +179,7 @@ $ g++ -Iinclude $(pkg-config --libs yaml-cpp) simple.cpp
 
 If you wish to create header files that are valid C code, simply don't emit writers, readers, and validators, like in the example above, and don't use any types that aren't available in C (like `std::string`, `std::vector`, ...).
 
-`yavl-compiler` does not check the correctness of the types you specified in your YAML file. Any mistakes will only be uncovered later when you include the header file into your project.
+`yavl-compile` does not check the correctness of the types you specified in your YAML file. Any mistakes will only be uncovered later when you include the header file into your project.
 
 ## Validation
 
@@ -204,7 +204,7 @@ Validating...
 Validation successful!
 ```
 
-> :warning: **Attention: This is potentially dangerous!** `validate.sh` will compile your spec to a header, use `g++` to create a dynamic library, and `yavl-validator` will execute binary code from this library without any checks. Never execute this script in a working environment you don't trust 100%! This is purely for demonstration purposes.
+> :warning: **Attention: This is potentially dangerous!** `validate.sh` will compile your spec to a header, use `g++` to create a dynamic library, and `yavl-validate-sample` will execute binary code from this library without any checks. Never execute this script in a working environment you don't trust 100%! This is purely for demonstration purposes.
 
 ## Dependencies
 

@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 test_names="$(for f in examples/*.yaml ; do echo "$f" ; done | sed -E 's/^examples\///g;s/_spec.yaml$//g;s/_sample_correct.yaml//g;s/_sample_incorrect.yaml//g' | sort -u)"
 
 echo '[ Validate header generated from spec_spec.yaml ]'
-./yavl-compiler spec_spec.yaml /dev/stdout | diff - include/yavl-cpp/spec.h
+./yavl-compile spec_spec.yaml /dev/stdout | diff - include/yavl-cpp/spec.h
 
 echo '[ Validate spec_spec.yaml with itself ]'
 output="$(./validate.sh 'spec_spec.yaml' 'spec_spec.yaml' SpecType 2>&1)" || {
