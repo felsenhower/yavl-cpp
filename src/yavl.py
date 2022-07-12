@@ -214,7 +214,15 @@ class CodeGenerator:
         self.writeln()
 
     def emit_alias(self, type_name, type_info):
-        self.writeln("typedef {} {};".format(str(type_info), type_name))
+        field_type = str(type_info)
+        bracket_pos = field_type.find("[")
+        is_array_type = bracket_pos != -1
+        if is_array_type:
+            base_type = field_type[0:bracket_pos]
+            array_length = field_type[bracket_pos:]
+            self.writeln("typedef {} {}{};".format(base_type, type_name, array_length))
+        else:
+            self.writeln("typedef {} {};".format(field_type, type_name))
         self.writeln()
 
     def emit_validator(self):

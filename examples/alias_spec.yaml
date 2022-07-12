@@ -1,4 +1,6 @@
 Types:
     MyInt: int
+    MyIntArray: int[5]
     TopType:
         my_int: MyInt
+        my_int_array: MyIntArray
