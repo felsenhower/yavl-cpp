@@ -103,6 +103,7 @@ def main() -> None:
         generator = None
         if "CustomCodeGenerator" in spec:
             module_path, class_name = spec["CustomCodeGenerator"]
+            module_path = "{}/{}".format(os.path.dirname(os.path.realpath(options.spec_filestream.name)), module_path)
             module_spec = importlib.util.spec_from_file_location(
                 "CustomCodeGenerator", module_path
             )
