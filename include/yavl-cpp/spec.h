@@ -39,6 +39,7 @@ struct SpecType {
   std::optional<std::vector<std::string>> ExtraIncludes;
   std::optional<std::string> Namespace;
   std::optional<TargetType> Target;
+  std::optional<std::tuple<std::string, std::string>> CustomCodeGenerator;
   tsl::ordered_map<std::string, YAML::Node> Types;
 };
 
@@ -47,6 +48,7 @@ inline void operator>>(const YAML::Node &input, SpecType &output) {
     {"ExtraIncludes", false},
     {"Namespace", false},
     {"Target", false},
+    {"CustomCodeGenerator", false},
     {"Types", true}
   };
   for (const auto &[key, is_required] : keys) {
@@ -63,6 +65,7 @@ inline void operator>>(const YAML::Node &input, SpecType &output) {
   input["ExtraIncludes"] >> output.ExtraIncludes;
   input["Namespace"] >> output.Namespace;
   input["Target"] >> output.Target;
+  input["CustomCodeGenerator"] >> output.CustomCodeGenerator;
   input["Types"] >> output.Types;
 }
 
@@ -74,6 +77,8 @@ inline YAML::Emitter& operator<<(YAML::Emitter &output, const SpecType &input) {
   output << YAML::Value << input.Namespace;
   output << YAML::Key << "Target";
   output << YAML::Value << input.Target;
+  output << YAML::Key << "CustomCodeGenerator";
+  output << YAML::Value << input.CustomCodeGenerator;
   output << YAML::Key << "Types";
   output << YAML::Value << input.Types;
   output << YAML::EndMap;

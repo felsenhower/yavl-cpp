@@ -10,6 +10,7 @@ Types:
         ExtraIncludes: std::optional<std::vector<std::string>>
         Namespace: std::optional<std::string>
         Target: std::optional<TargetType>
+        CustomCodeGenerator: std::optional<std::tuple<std::string, std::string>>
         # Simply choosing tsl::ordered_map<std::string, YAML::Node> as the type of the "Types" field is a lazy and horrible hack.
         # This is basically a way to communicate that we don't care about the type.
         # Better would be something like the following:
