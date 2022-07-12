@@ -1,15 +1,10 @@
 ExtraIncludes: [<any>, <map>, <optional>, <string>, <vector>, '"yaml-cpp/yaml.h"']
 
 Types:
-    TargetType:
-        - C
-        - CPP
     SpecType:
         # Following are the optional Meta Fields that can be used in a spec.
         # See the Language Specification inside the Wiki to get a description of them.
         ExtraIncludes: std::optional<std::vector<std::string>>
-        Namespace: std::optional<std::string>
-        Target: std::optional<TargetType>
         CustomCodeGenerator: std::optional<std::tuple<std::string, std::string>>
         # Simply choosing tsl::ordered_map<std::string, YAML::Node> as the type of the "Types" field is a lazy and horrible hack.
         # This is basically a way to communicate that we don't care about the type.
