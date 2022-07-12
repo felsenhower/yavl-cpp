@@ -76,6 +76,39 @@ template<typename T>
 inline void operator>>(const YAML::Node &node, T &obj);
 
 template<typename T>
+inline void operator>>(const YAML::Node &node, std::vector<T> &obj);
+
+template<typename T, std::size_t N>
+inline void operator>>(const YAML::Node &node, std::array<T, N> &obj);
+
+template<typename T, std::size_t N>
+inline void operator>>(const YAML::Node &node, T (&obj)[N]);
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, tsl::ordered_set<T> &obj);
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, std::set<T> &obj);
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, std::unordered_set<T> &obj);
+
+template<typename KT, typename VT>
+inline void operator>>(const YAML::Node &node, tsl::ordered_map<KT, VT> &obj);
+
+template<typename KT, typename VT>
+inline void operator>>(const YAML::Node &node, std::map<KT, VT> &obj);
+
+template<typename KT, typename VT>
+inline void operator>>(const YAML::Node &node, std::unordered_map<KT, VT> &obj);
+
+template<class... Types>
+inline void operator>>(const YAML::Node &node, std::tuple<Types...> &obj);
+
+template<typename T>
+inline void operator>>(const YAML::Node &node, std::optional<T> &obj);
+
+template<typename T>
 inline std::tuple<bool, std::optional<std::string>> validate(const YAML::Node &node) {
   try {
     T tmp;
