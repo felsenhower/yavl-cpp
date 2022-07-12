@@ -1,0 +1,6 @@
+CustomCodeGenerator: ["custom_code_generator.py", "MyCustomCodeGenerator"]
+
+Types:
+    TopType:
+        foo: int
+        bar: double
