@@ -77,10 +77,8 @@ def get_options() -> CompilerOptions:
 
 def validate_spec(filename: str):
     try:
-        cwd = os.path.dirname(os.path.realpath(__file__))
         pipe = subprocess.run(
-            ["./yavl-validate-spec", filename],
-            cwd=cwd,
+            [os.path.dirname(os.path.realpath(__file__)) + "/yavl-validate-spec", filename],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
