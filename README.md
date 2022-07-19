@@ -213,6 +213,8 @@ Validation successful!
 - `g++`
 - `pkg-config`
 - `bash`
+- `python3`
+- `pyyaml`
 
 ## Contributors
 
