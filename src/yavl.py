@@ -202,6 +202,7 @@ class CodeGenerator:
         self.writeln("}")
         self.writeln("}")
         for field_name in type_info:
+            field_name = self.get_map_field_identifier(field_name, type_name, type_info)
             self.writeln('input["{0}"] >> output.{0};'.format(field_name))
         self.writeln("}")
         self.writeln()
