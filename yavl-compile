@@ -8,10 +8,18 @@ import subprocess
 import yaml
 import os
 import importlib.util
+import tempfile
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/src")
 
 from yavl import CompilerOptions, CodeGenerator
+
+
+def yaml_str(string):
+    try:
+        return yaml.safe_load(string)
+    except yaml.YAMLError as e:
+        raise ValueError(e)
 
 
 def get_options() -> CompilerOptions:
@@ -49,6 +57,13 @@ def get_options() -> CompilerOptions:
         action="store_true",
     )
     parser.add_argument(
+        "--extra-yavl",
+        metavar="<yaml>",
+        action="store",
+        type=yaml_str,
+        help="Extra yavl that should be prepended to the spec",
+    )
+    parser.add_argument(
         "spec_file",
         metavar="<spec.yaml>",
         type=argparse.FileType("r", encoding="UTF-8"),
@@ -61,7 +76,25 @@ def get_options() -> CompilerOptions:
         help="The target header file.",
     )
     args = parser.parse_args()
-    options = CompilerOptions(args.spec_file, args.header_file)
+
+    options = CompilerOptions()
+
+    options.header_filestream = args.header_file
+
+    options.original_spec_filestream = args.spec_file
+    options.temp_spec_filestream = None
+    options.effective_spec_filestream = options.original_spec_filestream
+
+    if args.extra_yavl:
+        original_spec = options.original_spec_filestream.read()
+        options.original_spec_filestream.seek(0)
+        options.temp_spec_filestream = tempfile.NamedTemporaryFile()
+        options.temp_spec_filestream.write(yaml.dump(args.extra_yavl).encode("utf-8"))
+        options.temp_spec_filestream.write(b"\n")
+        options.temp_spec_filestream.write(original_spec.encode("utf-8"))
+        options.temp_spec_filestream.seek(0)
+        options.effective_spec_filestream = options.temp_spec_filestream
+
     options.validate_spec = not args.no_validate_spec
     options.emit_declarations = not args.no_emit_declarations
     if args.no_emit_databindings:
@@ -78,7 +111,10 @@ def get_options() -> CompilerOptions:
 def validate_spec(filename: str):
     try:
         pipe = subprocess.run(
-            [os.path.dirname(os.path.realpath(__file__)) + "/yavl-validate-spec", filename],
+            [
+                os.path.dirname(os.path.realpath(__file__)) + "/yavl-validate-spec",
+                filename,
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -97,13 +133,19 @@ def validate_spec(filename: str):
 def main() -> None:
     options = get_options()
     try:
-        spec = yaml.safe_load(options.spec_filestream)
+        spec = yaml.safe_load(options.effective_spec_filestream)
+        print(spec)
         if options.validate_spec:
-            validate_spec(options.spec_filestream.name)
+            validate_spec(options.effective_spec_filestream.name)
         generator = None
         if "CustomCodeGenerator" in spec:
             module_path, class_name = spec["CustomCodeGenerator"]
-            module_path = "{}/{}".format(os.path.dirname(os.path.realpath(options.spec_filestream.name)), module_path)
+            module_path = "{}/{}".format(
+                os.path.dirname(
+                    os.path.realpath(options.original_spec_filestream.name)
+                ),
+                module_path,
+            )
             module_spec = importlib.util.spec_from_file_location(
                 "CustomCodeGenerator", module_path
             )
@@ -118,7 +160,7 @@ def main() -> None:
     except yaml.YAMLError as e:
         sys.exit(
             'Error: The file "{}" doesn\'t seem to be valid YAML:\n{}'.format(
-                options.spec_filestream.name, e
+                options.effective_spec_filestream.name, e
             )
         )
 

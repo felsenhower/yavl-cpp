@@ -1,7 +1,7 @@
 import sys
 import argparse
 from dataclasses import dataclass
-from typing import Any, TextIO
+from typing import Any, TextIO, Optional
 import subprocess
 import yaml
 import os
@@ -10,8 +10,10 @@ from enum import Enum
 
 @dataclass
 class CompilerOptions:
-    spec_filestream: TextIO
-    header_filestream: TextIO
+    original_spec_filestream: Optional[TextIO] = None
+    temp_spec_filestream: Optional[TextIO] = None
+    effective_spec_filestream: Optional[TextIO] = None
+    header_filestream: Optional[TextIO] = None
     validate_spec: bool = True
     emit_declarations: bool = True
     emit_readers: bool = True
