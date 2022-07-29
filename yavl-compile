@@ -134,7 +134,6 @@ def main() -> None:
     options = get_options()
     try:
         spec = yaml.safe_load(options.effective_spec_filestream)
-        print(spec)
         if options.validate_spec:
             validate_spec(options.effective_spec_filestream.name)
         generator = None
